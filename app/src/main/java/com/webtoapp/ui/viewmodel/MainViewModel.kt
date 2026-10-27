@@ -24,6 +24,11 @@ import com.webtoapp.core.pwa.PwaAnalyzer
 import com.webtoapp.core.pwa.PwaAnalysisResult
 import com.webtoapp.core.pwa.PwaAnalysisState
 import com.webtoapp.core.pwa.PwaDataSource
+import com.webtoapp.core.ai.AiApiClient
+import com.webtoapp.core.ai.AiConfigurationAdvisor
+import com.webtoapp.core.ai.AiConfigurationParseResult
+import com.webtoapp.core.ai.AiConfigManager
+import com.webtoapp.data.model.AiFeature
 import android.content.Context
 import com.webtoapp.util.HtmlProjectHelper
 import com.webtoapp.util.ensureWebUrlScheme
@@ -36,6 +41,15 @@ import kotlinx.coroutines.flow.first
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
+
+sealed class AiConfigurationAdvisorState {
+    data object Idle : AiConfigurationAdvisorState()
+    data object Loading : AiConfigurationAdvisorState()
+    data class Preview(
+        val recommendation: com.webtoapp.core.ai.AiConfigurationRecommendation
+    ) : AiConfigurationAdvisorState()
+    data class Error(val message: String) : AiConfigurationAdvisorState()
+}
 
 @OptIn(FlowPreview::class)
 class MainViewModel(
@@ -134,6 +148,10 @@ class MainViewModel(
 
     private val _pwaAnalysisState = MutableStateFlow<PwaAnalysisState>(PwaAnalysisState.Idle)
     val pwaAnalysisState: StateFlow<PwaAnalysisState> = _pwaAnalysisState.asStateFlow()
+
+    private val _aiAdvisorState =
+        MutableStateFlow<AiConfigurationAdvisorState>(AiConfigurationAdvisorState.Idle)
+    val aiAdvisorState: StateFlow<AiConfigurationAdvisorState> = _aiAdvisorState.asStateFlow()
 
     override fun onCleared() {
         super.onCleared()
@@ -291,6 +309,7 @@ class MainViewModel(
                 } else {
                     PwaAnalysisState.Success(result)
                 }
+
             } catch (e: Exception) {
                 AppLogger.e("MainViewModel", "PWA analysis error", e)
                 _pwaAnalysisState.value = PwaAnalysisState.Error(
@@ -298,6 +317,82 @@ class MainViewModel(
                 )
             }
         }
+    }
+
+    fun suggestSettingsWithAi(url: String) {
+        if (url.isBlank()) return
+        viewModelScope.launch {
+            _aiAdvisorState.value = AiConfigurationAdvisorState.Loading
+            try {
+                val configManager = AiConfigManager(getApplication())
+                val savedModel = configManager.getDefaultModelForFeature(AiFeature.GENERAL).first()
+                if (savedModel == null) {
+                    _aiAdvisorState.value = AiConfigurationAdvisorState.Error(Strings.aiAdvisorNotConfigured)
+                    return@launch
+                }
+                val apiKey = configManager.getApiKeyById(savedModel.apiKeyId)
+                if (apiKey == null || (apiKey.provider.requiresApiKey && apiKey.apiKey.isBlank())) {
+                    _aiAdvisorState.value = AiConfigurationAdvisorState.Error(Strings.aiAdvisorNotConfigured)
+                    return@launch
+                }
+                val pwa = (_pwaAnalysisState.value as? PwaAnalysisState.Success)?.result
+                val response = AiApiClient(getApplication()).chat(
+                    apiKey = apiKey,
+                    model = savedModel.model,
+                    messages = listOf(
+                        mapOf(
+                            "role" to "system",
+                            "content" to "You are a cautious Android web-app configuration advisor."
+                        ),
+                        mapOf("role" to "user", "content" to AiConfigurationAdvisor.buildPrompt(url, pwa))
+                    ),
+                    temperature = 0.2f
+                )
+                response.fold(
+                    onSuccess = { raw ->
+                        when (val parsed = AiConfigurationAdvisor.parse(raw)) {
+                            is AiConfigurationParseResult.Success ->
+                                _aiAdvisorState.value = AiConfigurationAdvisorState.Preview(parsed.recommendation)
+                            is AiConfigurationParseResult.Error ->
+                                _aiAdvisorState.value = AiConfigurationAdvisorState.Error(
+                                    Strings.aiAdvisorInvalidResponse
+                                )
+                        }
+                    },
+                    onFailure = {
+                        _aiAdvisorState.value = AiConfigurationAdvisorState.Error(Strings.aiAdvisorFailed)
+                    }
+                )
+            } catch (e: Exception) {
+                AppLogger.e("MainViewModel", "AI configuration advisor failed", e)
+                _aiAdvisorState.value = AiConfigurationAdvisorState.Error(Strings.aiAdvisorFailed)
+            }
+        }
+    }
+
+    fun applyAiRecommendation(recommendation: com.webtoapp.core.ai.AiConfigurationRecommendation) {
+        updateEditState {
+            val updatedWebView = webViewConfig.copy(
+                orientationMode = when (recommendation.orientation) {
+                    "portrait" -> OrientationMode.PORTRAIT
+                    "landscape" -> OrientationMode.LANDSCAPE
+                    else -> webViewConfig.orientationMode
+                },
+                statusBarColorMode = if (recommendation.themeColor != null)
+                    StatusBarColorMode.CUSTOM else webViewConfig.statusBarColorMode,
+                statusBarColor = recommendation.themeColor ?: webViewConfig.statusBarColor,
+                fullscreenEnabled = recommendation.fullscreen ?: webViewConfig.fullscreenEnabled
+            )
+            copy(
+                name = recommendation.appName ?: name,
+                webViewConfig = updatedWebView
+            )
+        }
+        _aiAdvisorState.value = AiConfigurationAdvisorState.Idle
+    }
+
+    fun resetAiAdvisorState() {
+        _aiAdvisorState.value = AiConfigurationAdvisorState.Idle
     }
 
     fun applyPwaResult(result: PwaAnalysisResult) {
