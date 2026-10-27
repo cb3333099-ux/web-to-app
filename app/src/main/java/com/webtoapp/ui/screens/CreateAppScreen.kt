@@ -58,6 +58,7 @@ import com.webtoapp.ui.viewmodel.hasPreviewableContent
 import com.webtoapp.ui.viewmodel.withBrowserToolbarEnabled
 import com.webtoapp.ui.viewmodel.MainViewModel
 import com.webtoapp.ui.viewmodel.UiState
+import com.webtoapp.ui.viewmodel.AiConfigurationAdvisorState
 import androidx.compose.ui.platform.LocalContext
 import com.webtoapp.ui.webview.WebViewActivity
 import androidx.compose.ui.graphics.Color
@@ -67,6 +68,8 @@ import com.webtoapp.core.pwa.PwaAnalysisResult
 import com.webtoapp.core.pwa.PwaAnalysisState
 import com.webtoapp.core.pwa.PwaDataSource
 import com.webtoapp.util.AppConstants
+import com.webtoapp.util.ensureWebUrlScheme
+import com.webtoapp.util.isValidUrl
 
 @OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
@@ -218,16 +221,16 @@ fun CreateAppScreen(
                 )
             }
 
-            if (showAdvancedSettings) {
+            if (editState.appType == AppType.WEB) {
                 item {
-                    if (editState.appType == AppType.WEB) {
-                        PwaAnalysisSection(
-                            viewModel = viewModel,
-                            editState = editState
-                        )
-                    }
+                    PwaAnalysisSection(
+                        viewModel = viewModel,
+                        editState = editState
+                    )
                 }
+            }
 
+            if (showAdvancedSettings) {
                 item {
                     ActivationCodeCard(
                         enabled = editState.activationEnabled,
@@ -1072,6 +1075,11 @@ fun PwaAnalysisSection(
     editState: EditState
 ) {
     val pwaState by viewModel.pwaAnalysisState.collectAsStateWithLifecycle()
+    val aiState by viewModel.aiAdvisorState.collectAsStateWithLifecycle()
+    val currentAiState = aiState
+    val hasValidUrl = editState.url.trim().let { url ->
+        url.isNotBlank() && ensureWebUrlScheme(url).isValidUrl()
+    }
     var showResultCard by remember { mutableStateOf(false) }
 
     LaunchedEffect(pwaState) {
@@ -1089,7 +1097,7 @@ fun PwaAnalysisSection(
                 showResultCard = false
                 viewModel.analyzePwa(editState.url)
             },
-            enabled = editState.url.isNotBlank() && !isAnalyzing,
+            enabled = hasValidUrl && !isAnalyzing,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(WtaRadius.Button)
         ) {
@@ -1105,6 +1113,46 @@ fun PwaAnalysisSection(
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(Strings.pwaAnalyzeButton)
             }
+        }
+
+        Spacer(Modifier.height(8.dp))
+        OutlinedButton(
+            onClick = { viewModel.suggestSettingsWithAi(editState.url) },
+            enabled = hasValidUrl &&
+                pwaState !is PwaAnalysisState.Analyzing &&
+                aiState !is AiConfigurationAdvisorState.Loading,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(WtaRadius.Button)
+        ) {
+            if (aiState is AiConfigurationAdvisorState.Loading) {
+                CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                Spacer(Modifier.width(8.dp))
+            } else {
+                Icon(Icons.Outlined.AutoAwesome, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+            }
+            Text(
+                if (aiState is AiConfigurationAdvisorState.Loading)
+                    Strings.aiAdvisorLoading else Strings.aiAdvisorButton
+            )
+        }
+
+        if (currentAiState is AiConfigurationAdvisorState.Error) {
+            Spacer(Modifier.height(8.dp))
+            WtaStatusBanner(
+                title = Strings.aiAdvisorFailed,
+                message = currentAiState.message,
+                tone = WtaStatusTone.Error
+            )
+        }
+
+        if (currentAiState is AiConfigurationAdvisorState.Preview) {
+            Spacer(Modifier.height(8.dp))
+            AiRecommendationCard(
+                recommendation = currentAiState.recommendation,
+                onApply = { viewModel.applyAiRecommendation(currentAiState.recommendation) },
+                onDismiss = viewModel::resetAiAdvisorState
+            )
         }
 
         AnimatedVisibility(
@@ -1145,6 +1193,43 @@ fun PwaAnalysisSection(
                         }
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AiRecommendationCard(
+    recommendation: com.webtoapp.core.ai.AiConfigurationRecommendation,
+    onApply: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    WtaSettingCard {
+        Column(
+            modifier = Modifier.padding(WtaSpacing.RowHorizontal),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(Strings.aiAdvisorPreview, style = MaterialTheme.typography.titleSmall)
+            recommendation.appName?.let { Text("${Strings.aiAdvisorAppName}: $it") }
+            recommendation.orientation?.let { Text("${Strings.aiAdvisorOrientation}: $it") }
+            recommendation.themeColor?.let { Text("${Strings.aiAdvisorThemeColor}: $it") }
+            recommendation.fullscreen?.let {
+                Text("${Strings.aiAdvisorFullscreen}: ${if (it) Strings.yes else Strings.no}")
+            }
+            if (recommendation.explanation.isNotBlank()) {
+                Text(
+                    recommendation.explanation,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                TextButton(onClick = onDismiss) { Text(Strings.cancel) }
+                Spacer(Modifier.width(8.dp))
+                Button(onClick = onApply) { Text(Strings.aiAdvisorApply) }
             }
         }
     }

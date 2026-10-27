@@ -12371,6 +12371,63 @@ object StringsE {
         AppLanguage.JAPANESE -> "不明なエラー"
         AppLanguage.KOREAN -> "알 수 없는 오류"
     }
+    val aiAdvisorButton: String get() = when (Strings.lang) {
+        AppLanguage.CHINESE -> "使用 AI 建议设置"
+        AppLanguage.ENGLISH -> "Suggest Settings with AI"
+        AppLanguage.ARABIC -> "اقتراح الإعدادات بالذكاء الاصطناعي"
+        AppLanguage.PORTUGUESE -> "Sugerir configurações com IA"
+        AppLanguage.SPANISH -> "Sugerir ajustes con IA"
+        AppLanguage.FRENCH -> "Suggérer des réglages avec l'IA"
+        AppLanguage.GERMAN -> "Einstellungen mit KI vorschlagen"
+        AppLanguage.RUSSIAN -> "Предложить настройки с ИИ"
+        AppLanguage.JAPANESE -> "AI で設定を提案"
+        AppLanguage.KOREAN -> "AI로 설정 제안"
+    }
+    val aiAdvisorLoading: String get() = when (Strings.lang) {
+        AppLanguage.CHINESE -> "AI 正在建议设置..."
+        AppLanguage.ENGLISH -> "Getting AI suggestions..."
+        AppLanguage.ARABIC -> "جارٍ الحصول على اقتراحات الذكاء الاصطناعي..."
+        AppLanguage.PORTUGUESE -> "Obtendo sugestões da IA..."
+        AppLanguage.SPANISH -> "Obteniendo sugerencias de IA..."
+        AppLanguage.FRENCH -> "Obtention des suggestions de l'IA..."
+        AppLanguage.GERMAN -> "KI-Vorschläge werden abgerufen..."
+        AppLanguage.RUSSIAN -> "Получение предложений ИИ..."
+        AppLanguage.JAPANESE -> "AI の提案を取得中..."
+        AppLanguage.KOREAN -> "AI 제안 가져오는 중..."
+    }
+    val aiAdvisorPreview: String get() = when (Strings.lang) {
+        AppLanguage.CHINESE -> "AI 设置建议"
+        AppLanguage.ENGLISH -> "AI setting suggestions"
+        AppLanguage.ARABIC -> "اقتراحات إعدادات الذكاء الاصطناعي"
+        AppLanguage.PORTUGUESE -> "Sugestões de configuração da IA"
+        AppLanguage.SPANISH -> "Sugerencias de configuración de IA"
+        AppLanguage.FRENCH -> "Suggestions de réglages de l'IA"
+        AppLanguage.GERMAN -> "KI-Einstellungsvorschläge"
+        AppLanguage.RUSSIAN -> "Предложения настроек ИИ"
+        AppLanguage.JAPANESE -> "AI 設定の提案"
+        AppLanguage.KOREAN -> "AI 설정 제안"
+    }
+    val aiAdvisorApply: String get() = when (Strings.lang) {
+        AppLanguage.CHINESE -> "应用"
+        AppLanguage.ENGLISH -> "Apply"
+        AppLanguage.ARABIC -> "تطبيق"
+        AppLanguage.PORTUGUESE -> "Aplicar"
+        AppLanguage.SPANISH -> "Aplicar"
+        AppLanguage.FRENCH -> "Appliquer"
+        AppLanguage.GERMAN -> "Anwenden"
+        AppLanguage.RUSSIAN -> "Применить"
+        AppLanguage.JAPANESE -> "適用"
+        AppLanguage.KOREAN -> "적용"
+    }
+    val aiAdvisorAppName: String get() = "App name"
+    val aiAdvisorOrientation: String get() = "Orientation"
+    val aiAdvisorThemeColor: String get() = "Theme color"
+    val aiAdvisorFullscreen: String get() = "Fullscreen"
+    val aiAdvisorNotConfigured: String get() = "Configure a text AI model in AI Settings first."
+    val aiAdvisorInvalidResponse: String get() = "The AI returned no valid settings."
+    val aiAdvisorFailed: String get() = "AI suggestions are unavailable right now."
+    val yes: String get() = "Yes"
+    val no: String get() = "No"
 
     val integrityInstallerSource: String get() = when (Strings.lang) {
         AppLanguage.CHINESE -> "安装来源: %s"

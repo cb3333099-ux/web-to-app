@@ -10,6 +10,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -37,7 +39,8 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    onBack: () -> Unit = {}
+    onBack: () -> Unit = {},
+    onOpenAiSettings: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val themeManager = remember { ThemeManager.getInstance(context) }
@@ -71,6 +74,30 @@ fun SettingsScreen(
                 ),
             verticalArrangement = Arrangement.spacedBy(WtaSpacing.SectionGap)
         ) {
+
+            WtaSection(title = Strings.aiSettings) {
+                WtaSettingCard {
+                    WtaSettingRow(
+                        title = Strings.aiSettings,
+                        onClick = onOpenAiSettings,
+                        iconContent = {
+                            Icon(
+                                imageVector = Icons.Outlined.AutoAwesome,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp),
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.ChevronRight,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp),
+                            tint = MaterialTheme.colorScheme.outline
+                        )
+                    }
+                }
+            }
 
             WtaSection(
                 title = Strings.settingsThemeColor,

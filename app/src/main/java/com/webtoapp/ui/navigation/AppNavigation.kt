@@ -731,7 +731,10 @@ fun AppNavigation() {
             }
 
             composable(Routes.SETTINGS) {
-                SettingsScreen(onBack = { navController.popBackStackSafely() })
+                SettingsScreen(
+                    onBack = { navController.popBackStackSafely() },
+                    onOpenAiSettings = { navController.navigate(Routes.AI_SETTINGS) }
+                )
             }
 
             composable(Routes.PLUGINS) {
