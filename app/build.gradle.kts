@@ -15,7 +15,6 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("com.google.devtools.ksp")
     id("org.jetbrains.kotlin.plugin.compose")
-    id("com.google.protobuf")
 }
 
 ksp {
@@ -605,22 +604,6 @@ androidComponents {
     }
 }
 
-protobuf {
-    protoc {
-        artifact = "com.google.protobuf:protoc:3.25.5"
-    }
-    generateProtoTasks {
-        all().forEach { task ->
-            task.builtins {
-
-                create("java") {
-                    option("lite")
-                }
-            }
-        }
-    }
-}
-
 dependencies {
 
     implementation("androidx.core:core-ktx:1.12.0")
@@ -628,8 +611,6 @@ dependencies {
     implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("androidx.documentfile:documentfile:1.0.1")
-
-    implementation("com.google.protobuf:protobuf-javalite:3.25.5")
 
     implementation("com.google.android.material:material:1.10.0")
     implementation("androidx.activity:activity-compose:1.8.1")

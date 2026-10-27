@@ -20,7 +20,7 @@
 
 ## 它不是什么
 
-在 WebToApp 里直接安装的仍然是[构建出的 APK](/zh/guide/app-actions/build-apk)或 [Play AAB](/zh/guide/more-features/google-play)。这份工程用同样的名称、包名、权限和本地文件编出一个 WebView 应用。它不含签名密钥库，也不包含 WebToApp 壳的全部运行时。
+在 WebToApp 里直接安装的是[构建出的 APK](/zh/guide/app-actions/build-apk)。这份工程用同样的名称、包名、权限和本地文件编出一个 WebView 应用。它不含签名密钥库，也不包含 WebToApp 壳的全部运行时。
 
 压缩包里可能有你配置的激活密钥和代理凭据。
 

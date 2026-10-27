@@ -95,7 +95,7 @@
 
 - **在设备上跑真实的服务端运行时。** Node.js、PHP、Python、Go、WordPress 以原生二进制的形式直接从 app 存储 fork+exec —— 像 Termux 那样,但被打进一个可安装的 APK。URL 套壳工具根本做不到。
 - **内置硬核、反审查的网络栈。** DNS-over-HTTPS、TLS 指纹伪装(Chrome / Firefox / Safari 的 JA3 模板,经本地 MITM 桥接)、双引擎 ECH(加密 SNI)、每应用代理、以及针对受限 SPA 的 CORS 绕过。
-- **整个构建自包含。** 二进制 AXML/ARSC 修补、权限裁剪、V1/V2/V3 签名、可直接上架 Google Play 的 AAB 导出,全部在 app 内通过 `apksig` 完成 —— 不排远程队列、不需要电脑。
+- **整个 APK 构建自包含。** 二进制 AXML/ARSC 修补、权限裁剪和 V1/V2/V3 签名,全部在 app 内通过 `apksig` 完成 —— 不排远程队列、不需要电脑。
 - **发布后仍可扩展。** 通过 JS/CSS 模块、Tampermonkey 风格油猴脚本,或 MV3 Chrome 扩展(可在应用内实时搜索 Chrome 网上应用店并安装)给应用补能力,不必重新发布宿主。
 - **宿主 UI 原生支持 10 种语言。** 中文、English、العربية(RTL)、Português、Español、Français、Deutsch、Русский、日本語、한국어 —— 设置里随时切换;新增界面文案按 10 语维护。
 
@@ -113,7 +113,7 @@
 | **隐私与加固** | 50+ 维浏览器指纹伪装、资源加密(AES-256-GCM)、反调试、激活码门控 |
 | **本地运行时** | 原生 Node.js 18.20、PHP 8.4 + Composer 2.10、Python 3.14、官方 Go 1.26、WordPress 7.x over SQLite |
 | **扩展能力** | 内置模块、`GM_*` 油猴脚本、MV3 Chrome 扩展、Chrome 网上应用店实时搜索 |
-| **APK/AAB 产物** | 设备端 V1/V2/V3 签名、Google Play AAB 导出(自动改写 targetSdk)、密钥库管理 |
+| **APK 产物** | 设备端 V1/V2/V3 签名、安装、分享和密钥库管理 |
 | **Agent** | 通过最多 60 个工具全面操控应用:生成、构建、导出、端口/引擎/运行时管理、应用克隆、广告拦截、配置模板等;429/5xx 自动重试 |
 | **宿主语言** | **10 种界面语言** —— 中文 · English · العربية · Português · Español · Français · Deutsch · Русский · 日本語 · 한국어(阿语 RTL) |
 
@@ -236,7 +236,6 @@ WebToApp 的开关非常多。下面按使用场景分组,并用可折叠区段�
 - **SDK 级别** —— 可以把 minSdk 提高到 23 以上,并把 targetSdk 固定为 28、31、33、34、35 或 36。服务端运行时类型仍固定 28。Play AAB 导出仍会把 targetSdk 改写到 36。
 - **按生成 APK 的实际勾选注入权限** —— 第三方应用从 API 23 到 Android 17 可以声明的权限,一行一个。未使用的权限会从模板 manifest 中裁掉。
 - **前台服务类型** —— 生成的 APK 只在对应服务还在时才声明该类型。媒体会话关闭时不带媒体播放类型。`DATA_SYNC` 只留在宿主上。
-- **一键 AAB 导出** —— 按需自动构建 APK,转换成可直接上架的签名 AAB(自动把 `targetSdk` 改写到 Play 要求的级别,目前为 36,并在本地生成 protobuf 元数据);支持中途取消。除服务端运行时应用类型和开启资源加密的构建外全部可用 —— 见[哪些应用可以上架](https://shiaho777.github.io/web-to-app/zh/guide/more-features/google-play)。
 - **密钥库管理** —— 创建、导入、导出、删除和证书指纹查看;支持 PKCS12/PFX/JKS/BKS 导入,包括 Android Studio upload key 那种 store 密码和 key 密码不同的情况。
 - **签名方案** —— V1、V2、V3 独立控制,可对旧证书兼容性自动回退;自定义 V1 签名文件名,对应 `META-INF/<name>.SF` / `.RSA`。
 - **性能选项** —— 图片压缩、WebP 转换、代码压缩、懒加载、DNS 预取、preload 提示。
@@ -356,7 +355,6 @@ App 会同时拉取 `registry.json` 和 `submissions.json`,只展示两边都存
 - OkHttp 4.12.0 + `okhttp-dnsoverhttps`
 - `com.android.tools.build:apksig` 8.3.0 用于 APK 签名
 - BouncyCastle 1.78.1 用于加密与签名
-- `protobuf-javalite` 3.25.5 用于 AAB 元数据
 - Firebase Cloud Messaging(需自行配置 Firebase)用于推送通知
 - GeckoView 作为可选浏览器引擎(原生库在首次使用时下载)
 - Coil 负责图片、视频、GIF 加载

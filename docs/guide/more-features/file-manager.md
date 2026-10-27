@@ -4,7 +4,7 @@ A single place for build outputs and user files. Open it from [⋮ → File Mana
 
 ## Features
 
-- **Browse** — APK builds, AAB exports, app clones, build logs, and a user-files directory.
+- **Browse** — APK builds, app clones, build logs, and a user-files directory.
 - **Search** — filter files by name.
 - **Actions** — view, open, copy, share, install (APKs), and delete.
 - **Multi-select** — select many files for batch delete/clear.
@@ -14,4 +14,4 @@ A single place for build outputs and user files. Open it from [⋮ → File Mana
 ## Notes
 
 - Install starts the system package installer; failures are reported.
-- Build outputs from [Build APK](/guide/app-actions/build-apk) and [AAB export](/guide/more-features/google-play) land here.
+- Build outputs from [Build APK](/guide/app-actions/build-apk) land here.

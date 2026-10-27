@@ -268,7 +268,7 @@ class WebViewManager(
          *    targetSdk <= 32 only honors FORCE_DARK; targetSdk >= 33 only honors
          *    setAlgorithmicDarkeningAllowed. Dispatch on the real runtime targetSdk (see
          *    preferAlgorithmicDarkening) so dark mode keeps working on generated APKs whose
-         *    targetSdk is raised above 32 and on the Play AAB (targetSdk rewritten to 36)
+         *    targetSdk is raised above 32
          *    (regression from #342, reported as #485).
          *  - FORCE_DARK is a static switch: it does not track system theme changes by itself,
          *    so the hosting activity must re-derive ON/OFF from the uiMode on every change
@@ -290,7 +290,7 @@ class WebViewManager(
                 // the WebView version:
                 //   targetSdk <= 32: setForceDark() works; setAlgorithmicDarkeningAllowed() is a no-op.
                 //   targetSdk >= 33: setForceDark() is a no-op; setAlgorithmicDarkeningAllowed() works.
-                // Picking by WebViewFeature alone silently broke dark mode on the Play AAB path
+                // Picking by WebViewFeature alone can silently break dark mode on newer targets
                 // (whose manifest is rewritten to targetSdk 36) and on any generated APK whose
                 // targetSdk is raised above 32. Dispatch on the real runtime targetSdk instead.
                 val useAlgorithmic = preferAlgorithmicDarkening(webView.context)
@@ -345,7 +345,7 @@ class WebViewManager(
          * Whether the modern [WebSettingsCompat.setAlgorithmicDarkeningAllowed] API must be
          * used instead of the legacy FORCE_DARK. On apps whose own targetSdkVersion is >= 33
          * (TIRAMISU), FORCE_DARK becomes a no-op and algorithmic darkening is the only path.
-         * Read from the actual runtime manifest so this works correctly for the Play AAB
+         * Read from the actual runtime manifest so this works correctly for generated APKs
          * (targetSdk rewritten to 36) and for any generated APK whose targetSdk is raised.
          */
         private fun preferAlgorithmicDarkening(context: Context): Boolean {
@@ -3146,7 +3146,7 @@ class WebViewManager(
                 // Explicit opt-out (Special Settings): proceed past every certificate error
                 // for main-frame AND sub-resource loads — an expired-cert site must render
                 // fully, not just its HTML. This deliberately disables TLS MITM protection
-                // for the whole app; the Play policy checker flags it for Play-bound exports.
+                // for the whole app; broad injection can affect app policy and behavior.
                 if (config.errorPageConfig.ignoreSslErrors) {
                     AppLogger.w(
                         "WebViewManager",

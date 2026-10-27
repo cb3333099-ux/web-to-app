@@ -1,8 +1,6 @@
 package com.webtoapp.core.apkbuilder
 
 import com.google.common.truth.Truth.assertThat
-import com.webtoapp.core.playstore.aab.axml.AxmlBuilder
-import com.webtoapp.core.playstore.aab.axml.AxmlToProtoXml
 import org.junit.Assert.assertThrows
 import org.junit.Test
 
@@ -17,13 +15,13 @@ class AxmlRebuilderSaepTest {
             "http://schemas.android.com/apk/res/android", "example.keep", "untouched",
             SaepPolicy.TEMPLATE_METADATA, "@raw/agent_saep_policy"
         )
-        val builder = AxmlBuilder().stringPool(strings)
+        val builder = BinaryAxmlTestSupport.Builder().stringPool(strings)
             .resourceMap(intArrayOf(android.R.attr.name, android.R.attr.resource, android.R.attr.value))
             .startNamespace(6, 7).startElement(-1, 3, emptyList()).startElement(-1, 4, emptyList())
         fun metadata(name: Int, attr: Int, type: Int, data: Int) {
             builder.startElement(-1, 5, listOf(
-                AxmlBuilder.Attr(7, 0, name, 0x03, name),
-                AxmlBuilder.Attr(7, attr, if (type == 0x03) data else -1, type, data)
+                BinaryAxmlTestSupport.Builder.Attr(7, 0, name, 0x03, name),
+                BinaryAxmlTestSupport.Builder.Attr(7, attr, if (type == 0x03) data else -1, type, data)
             )).endElement(-1, 5)
         }
         metadata(8, 2, 0x03, 9)
@@ -34,11 +32,10 @@ class AxmlRebuilderSaepTest {
         return builder.endElement(-1, 4).endElement(-1, 3).endNamespace(6, 7).build()
     }
 
-    private fun metadata(bytes: ByteArray) = AxmlToProtoXml.convert(bytes).element.childList
-        .single { it.hasElement() && it.element.name == "application" }.element.childList
-        .filter { it.hasElement() && it.element.name == "meta-data" }
-        .map { it.element }
-        .associateBy { it.attributeList.single { attr -> attr.name == "name" }.value }
+    private fun metadata(bytes: ByteArray) = BinaryAxmlTestSupport.parse(bytes).children
+        .single { it.name == "application" }.children
+        .filter { it.name == "meta-data" }
+        .associateBy { it.attributes.single { attr -> attr.name == "name" }.value }
 
     @Test
     fun `opt in preserves compiled resource id namespace and unrelated metadata`() {
@@ -47,11 +44,11 @@ class AxmlRebuilderSaepTest {
         val values = metadata(result)
         assertThat(values.keys).containsExactly("example.keep", SaepPolicy.POLICY_METADATA)
         assertThat(values["example.keep"]).isEqualTo(metadata(original)["example.keep"])
-        val ref = values.getValue(SaepPolicy.POLICY_METADATA).attributeList.single { it.name == "resource" }
+        val ref = values.getValue(SaepPolicy.POLICY_METADATA).attributes.single { it.name == "resource" }
         assertThat(ref.namespaceUri).isEqualTo("http://schemas.android.com/apk/res/android")
         assertThat(ref.resourceId).isEqualTo(android.R.attr.resource)
-        assertThat(ref.compiledItem.hasRef()).isTrue()
-        assertThat(ref.compiledItem.ref.id).isEqualTo(resourceId)
+        assertThat(ref.type).isEqualTo(0x01)
+        assertThat(ref.data).isEqualTo(resourceId)
         assertThat(metadata(original).keys).contains(SaepPolicy.TEMPLATE_METADATA)
         assertThat(rebuilder.rewriteSaepPolicyMetadata(result, resourceId)).isEqualTo(result)
     }

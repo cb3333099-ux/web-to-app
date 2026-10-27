@@ -95,7 +95,7 @@ Most "website to app" tools stop at wrapping a URL in a WebView. WebToApp is clo
 
 - **It runs real server runtimes on-device.** Node.js, PHP, Python, Go, and WordPress are fork+exec'd as native binaries straight from app storage — like Termux, packaged into an installable APK. URL-wrapper tools cannot do this at all.
 - **It ships a hardened, anti-censorship network stack.** DNS-over-HTTPS, TLS fingerprint spoofing (Chrome / Firefox / Safari JA3 templates) with a local MITM bridge, Encrypted Client Hello (ECH) on both engines to encrypt the SNI, per-app proxies, and CORS bypass for locked-down SPAs.
-- **The whole build is self-contained.** Binary AXML/ARSC patching, permission pruning, V1/V2/V3 signing, and Google Play-ready AAB export all happen inside the app via `apksig` — no remote build queue, no PC.
+- **The whole APK build is self-contained.** Binary AXML/ARSC patching, permission pruning, and V1/V2/V3 signing happen inside the app via `apksig` — no remote build queue, no PC.
 - **It stays extensible after shipping.** Add JS/CSS modules, Tampermonkey-style userscripts, or MV3 Chrome extensions (live-searched and installed from the Chrome Web Store) without rebuilding the host.
 - **The host UI speaks 10 languages out of the box.** Chinese, English, Arabic (RTL), Portuguese, Spanish, French, German, Russian, Japanese, and Korean — switch anytime in Settings; new in-app copy is maintained for all ten.
 
@@ -113,7 +113,7 @@ A quick scan of what's in the box. Each links to the detailed feature map below.
 | **Privacy & hardening** | 50+ vector browser fingerprint disguise, resource encryption (AES-256-GCM), anti-debug, activation gating |
 | **Local runtimes** | Native Node.js 18.20, PHP 8.4 + Composer 2.10, Python 3.14, official Go 1.26, WordPress 7.x over SQLite |
 | **Extensions** | Built-in modules, userscripts with `GM_*`, MV3 Chrome extensions, live Chrome Web Store search |
-| **APK/AAB output** | On-device V1/V2/V3 signing, Google Play AAB export with targetSdk rewrite, keystore management |
+| **APK output** | On-device V1/V2/V3 signing, installation, sharing, and keystore management |
 | **Agent** | Full-app automation via up to 60 tools: generate, build, export, manage ports/engines/runtimes, clone apps, ad-block rules, config templates, and more; auto-retry on 429/5xx |
 | **Host languages** | **10 UI languages** — 中文 · English · العربية · Português · Español · Français · Deutsch · Русский · 日本語 · 한국어 (Arabic RTL) |
 
@@ -143,7 +143,7 @@ From a fresh install to your first signed APK in about a minute:
 2. **Create an app** — on **My Apps**, tap **Create**. The default grid is Web, Multi-Site, HTML, Offline Pack, Frontend, and Gallery. PHP, WordPress, Node.js, Python, Go, and Media appear after **About → Advanced features** is on.
 3. **Fill in the basics** — app name, target URL (or your project files), and an optional icon, then **Save**. Every other editor card is optional configuration.
 4. **Preview** — tap the app's card to run it in the same runtime code the export will use.
-5. **Build** — tap **⋮ → Build APK**, pick the engine and options, and get a signed APK ready to install or share. Shipping to Google Play? Use **⋮ → Google Play** instead — it builds the APK, converts it to a Play-ready signed AAB with `targetSdk` rewritten, and generates the Play metadata — all on-device.
+5. **Build** — tap **⋮ → Build APK**, pick the engine and options, and get a signed APK ready to install or share.
 
 The full walkthrough — with the per-type notes and what happens under the hood — lives in the [Getting Started guide](https://shiaho777.github.io/web-to-app/guide/getting-started).
 
@@ -230,13 +230,12 @@ WebToApp has a large number of switches. The sections below group them by use ca
 </details>
 
 <details>
-<summary><b>🔧 APK / AAB export & signing</b></summary>
+<summary><b>🔧 APK export & signing</b></summary>
 
 - **Custom package name**, `versionName`, `versionCode`, icon, label, architecture target, and export format. A transparent icon gets a white adaptive plate by default, or a solid color you pick, or a transparent plate. An opaque icon keeps its edge color.
-- **SDK levels** — raise minSdk above 23, and pin targetSdk to 28, 31, 33, 34, 35, or 36. Server-runtime types stay at 28. Play AAB export still rewrites targetSdk to 36.
+- **SDK levels** — raise minSdk above 23, and pin targetSdk to 28, 31, 33, 34, 35, or 36. Server-runtime types stay at 28.
 - **Build-time permission injection** — one row per permission a third-party app can declare from API 23 through Android 17. Unused permissions are pruned from the template manifest.
 - **Foreground service types** — a generated APK declares a type only when that service ships. Media playback is omitted when media session is off. `DATA_SYNC` stays on the host.
-- **One-tap AAB export** — auto-builds the APK on demand, converts it to a Play-ready signed AAB with `targetSdk` rewritten to the Play-required level (currently 36) and protobuf metadata generated locally; cancellable mid-build. Available for every app type except the server-runtime ones and encrypted builds — see [which apps can be published](https://shiaho777.github.io/web-to-app/guide/more-features/google-play).
 - **Keystore management** — create, import, export, delete, and certificate-fingerprint viewing; PKCS12/PFX/JKS/BKS import including Android Studio upload-key cases where store and key passwords differ.
 - **Signature schemes** — V1, V2, V3 independently controlled, with auto-fallback for legacy certificates; custom V1 signer filename for `META-INF/<name>.SF` / `.RSA`.
 - **Performance options** — image compression, WebP conversion, code minification, lazy loading, DNS prefetch, and preload hints.
@@ -247,7 +246,7 @@ WebToApp has a large number of switches. The sections below group them by use ca
 <details>
 <summary><b>🗂 File manager & project tooling</b></summary>
 
-- **File manager** — a single screen to view, share, install, open, and clear build outputs (APK builds, AAB exports, app clones, build logs) and a user-files directory, with a read-only build-log viewer.
+- **File manager** — a single screen to view, share, install, open, and clear build outputs (APK builds, app clones, build logs) and a user-files directory, with a read-only build-log viewer.
 - **Export source** — a Gradle project you can open in Android Studio: manifest, WebView activity, config, and local files. The keystore, `node_modules`, `.git`, and the full shell runtime stay out.
 - **Website scraper** for offline packs — HTML, CSS, JS, images, fonts, `url()`, `srcset`, `@import`, path rewriting, same-domain limits, depth limits, and size limits; parallel streaming worker pool with main-thread progress callbacks.
 - **Multi-Web layouts** — bottom tabs, top tabs that follow a sideways swipe, cards (1–4 columns and a height slider), feeds, drawers (1–3 columns), site order, the tab opened on launch, per-site icons/theme colors/extraction selectors/refresh intervals, and shared JS/CSS.
@@ -283,13 +282,12 @@ WebToApp ships a built-in AI agent (open from **⋮ → Agent**) that can operat
 | Files | Read, Write, Edit, Delete, List, Glob, Grep project files |
 | Apps | List, Get, Create, Update app configurations |
 | Config templates | List, save, apply, delete, export, and import a common-config JSON file |
-| App lifecycle | Build APK/AAB, Export, Share, Create shortcut, Duplicate, Delete, Move to category |
+| App lifecycle | Build APK, Export, Share, Create shortcut, Duplicate, Delete, Move to category |
 | Ports & engines | Scan/kill ports, check/select/delete browser engines (WebView, GeckoView) |
 | Runtimes | Status, install, and cache-clear for Node.js, PHP, Python, Go, WordPress, Linux env |
 | Ad-block | Rule counts, import/remove/enable/disable hosts subscriptions |
 | Stats & health | Usage statistics, URL health checks |
 | App modifier | List installed apps, clone/rebrand, batch import, export templates |
-| Build env & compliance | Initialize Linux build env, install components, Google Play policy checks |
 | Modules | List, create, update extension modules |
 | Interaction | Ask user questions (multi-select), plan mode (propose → approve → execute), todo tracking |
 
@@ -356,7 +354,6 @@ The official documentation site is published at **[shiaho777.github.io/web-to-ap
 - OkHttp 4.12.0 + `okhttp-dnsoverhttps`
 - `com.android.tools.build:apksig` 8.3.0 for APK signing
 - BouncyCastle 1.78.1 for crypto and signing
-- `protobuf-javalite` 3.25.5 for AAB metadata
 - Firebase Cloud Messaging (BYO Firebase config) for push notifications
 - GeckoView as an optional browser engine (native libs downloaded on first use)
 - Coil for image/video/GIF loading
@@ -390,7 +387,7 @@ Two distribution flavors exist, sharing all code and build rules:
 
 ```bash
 ./gradlew assembleStandardRelease   # signed release APK
-./gradlew bundleGplayRelease        # Play-ready signed AAB
+./gradlew bundleGplayRelease # Host-app Play flavor bundle
 ./gradlew :app:assembleStandardRelease -Pfdroid=true
 # unsigned F-Droid APK (no Firebase, Google Sign-In, or AdMob)
 ```

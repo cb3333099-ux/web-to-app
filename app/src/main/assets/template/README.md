@@ -28,7 +28,7 @@
    - 改写包名、应用名、图标（AXML/ARSC 二进制补丁，包名修改已完整支持）；
    - 按应用类型嵌入运行时资源（HTML/前端包、媒体、`libnode.so` 等原生库），
      并按启用的功能裁剪未用权限（`RuntimePermissionSync`）。
-3. `apksig` 完成 V1/V2/V3 签名后即为最终 APK；AAB 导出会另行把 `targetSdk`
+3. `apksig` 完成 V1/V2/V3 签名后即为最终 APK；主机应用的 Play bundle
    改写为 Play 要求的级别。
 
 ## 注意事项

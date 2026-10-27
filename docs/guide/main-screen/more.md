@@ -21,7 +21,6 @@ Grouped with dividers, top to bottom:
 | **Hosts Ad Blocking** | [Hosts Ad Blocking](/guide/more-features/hosts-adblock) |
 | ── | ── |
 | **Usage Stats** | [Usage Stats](/guide/more-features/usage-stats) |
-| **Google Play** | [Google Play](/guide/more-features/google-play) |
 | **File Manager** | [File Manager](/guide/more-features/file-manager) |
 | **Data Backup** | [Data Backup](/guide/more-features/data-backup) |
 | **About** | [About](/guide/more-features/about) |

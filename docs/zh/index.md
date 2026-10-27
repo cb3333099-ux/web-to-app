@@ -28,7 +28,7 @@ features:
     details: DNS-over-HTTPS、带本地 MITM 桥的 TLS 指纹伪造、加密客户端 Hello(ECH)、按应用代理,以及针对受限 SPA 的 CORS 绕过。
   - icon: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
     title: 自包含构建
-    details: 二进制 AXML/ARSC 打补丁、权限裁剪、V1/V2/V3 签名、Google Play 级 AAB 导出 —— 全部通过 apksig 在应用内完成,无需远程构建队列。
+    details: 二进制 AXML/ARSC 打补丁、权限裁剪、V1/V2/V3 签名 —— 全部通过 apksig 在应用内完成,无需远程构建队列。
   - icon: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v4M14 2v4M10 18v4M14 18v4M2 10h4M2 14h4M18 10h4M18 14h4"/><rect x="8" y="8" width="8" height="8" rx="1.5"/></svg>
     title: 发布后仍可扩展
     details: 添加 JS/CSS 模块、Tampermonkey 风格油猴脚本,或 MV3 Chrome 扩展(从 Chrome 网上应用店实时搜索),无需重建宿主。
@@ -56,7 +56,7 @@ features:
 
 3. **构建并分享**
 
-   [构建 APK](/zh/guide/app-actions/build-apk) 用 V1/V2/V3 在设备上完成签名,再[分享](/zh/guide/app-actions/share-apk)出去、[导出源码](/zh/guide/app-actions/export-apk),或[导出 Play 级 AAB](/zh/guide/more-features/google-play)。无需电脑,没有构建队列。
+   [构建 APK](/zh/guide/app-actions/build-apk) 用 V1/V2/V3 在设备上完成签名,再[分享](/zh/guide/app-actions/share-apk)出去或[导出源码](/zh/guide/app-actions/export-apk)。无需电脑,没有构建队列。
 
 </div>
 

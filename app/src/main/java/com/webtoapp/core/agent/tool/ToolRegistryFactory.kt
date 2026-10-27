@@ -5,7 +5,6 @@ import com.webtoapp.core.agent.plan.PlanManager
 import com.webtoapp.core.agent.tool.builtin.AskUserTool
 import com.webtoapp.core.agent.tool.builtin.BatchImportAppsTool
 import com.webtoapp.core.agent.tool.builtin.BuildApkTool
-import com.webtoapp.core.agent.tool.builtin.CheckPlayPolicyTool
 import com.webtoapp.core.agent.tool.builtin.CheckAppHealthTool
 import com.webtoapp.core.agent.tool.builtin.ClearAppCacheTool
 import com.webtoapp.core.agent.tool.builtin.ClearRuntimeCacheTool
@@ -20,7 +19,6 @@ import com.webtoapp.core.agent.tool.builtin.DuplicateAppTool
 import com.webtoapp.core.agent.tool.builtin.EditFileTool
 import com.webtoapp.core.agent.tool.builtin.EnterPlanModeTool
 import com.webtoapp.core.agent.tool.builtin.ExitPlanModeTool
-import com.webtoapp.core.agent.tool.builtin.ExportAabTool
 import com.webtoapp.core.agent.tool.builtin.ExportAppTemplateTool
 import com.webtoapp.core.agent.tool.builtin.ExportAppTool
 import com.webtoapp.core.agent.tool.builtin.GetUsageStatsTool
@@ -111,7 +109,6 @@ class ToolRegistryFactory(
         ClearAppCacheTool(),
         DeleteAppTool(),
         DuplicateAppTool(),
-        ExportAabTool(),
         // Ports & engine
         ScanPortsTool(),
         KillPortTool(),
@@ -135,7 +132,6 @@ class ToolRegistryFactory(
         // Build env & Play policy
         GetBuildEnvStatusTool(),
         InitializeBuildEnvTool(),
-        CheckPlayPolicyTool(),
         // Modules
         ListModulesTool(),
         GetModuleTool(),

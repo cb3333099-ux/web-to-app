@@ -30,6 +30,7 @@ import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -145,8 +146,6 @@ fun HomeScreen(
     onOpenAbout: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
     onOpenMore: () -> Unit = {},
-    onOpenPlayStore: () -> Unit = {},
-    onExportAabForApp: (Long) -> Unit = {},
     onOpenFileManager: () -> Unit = {},
     onBuildApk: (Long) -> Unit = {},
 ) {
@@ -193,6 +192,7 @@ fun HomeScreen(
     }
 
     val createMenuScrollState = rememberScrollState()
+    var otherAppTypesExpanded by rememberSaveable { mutableStateOf(false) }
     val advancedFeatures by HostRuntimePrefs.getInstance(context)
         .advancedFeaturesFlow
         .collectAsStateWithLifecycle()
@@ -244,32 +244,20 @@ fun HomeScreen(
                     val view = LocalView.current
                     val activity = context as? android.app.Activity
 
-                    var buttonCenter by remember { mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
+                    var themeActionCenter by remember {
+                        mutableStateOf(androidx.compose.ui.geometry.Offset.Zero)
+                    }
 
-                    IconButton(
-                        onClick = {
-                            val switchToDark = !isDarkNow
+                    fun toggleTheme() {
+                        val switchToDark = !isDarkNow
 
-                            if (revealState != null) {
-
-                                revealState.triggerReveal(
-                                    center = buttonCenter,
-                                    switchToDark = switchToDark,
-                                    view = view,
-                                    window = activity?.window
-                                ) {
-
-                                    scope.launch {
-                                        val newMode = if (switchToDark) {
-                                            ThemeManager.DarkModeSettings.DARK
-                                        } else {
-                                            ThemeManager.DarkModeSettings.LIGHT
-                                        }
-                                        themeManager.setDarkMode(newMode)
-                                    }
-                                }
-                            } else {
-
+                        if (revealState != null) {
+                            revealState.triggerReveal(
+                                center = themeActionCenter,
+                                switchToDark = switchToDark,
+                                view = view,
+                                window = activity?.window
+                            ) {
                                 scope.launch {
                                     val newMode = if (switchToDark) {
                                         ThemeManager.DarkModeSettings.DARK
@@ -279,37 +267,17 @@ fun HomeScreen(
                                     themeManager.setDarkMode(newMode)
                                 }
                             }
-                        },
-                        modifier = Modifier
-                            .size(44.dp)
-                            .onGloballyPositioned { coords ->
-                                val bounds = coords.boundsInRoot()
-                                buttonCenter = androidx.compose.ui.geometry.Offset(
-                                    bounds.left + bounds.width / 2,
-                                    bounds.top + bounds.height / 2
-                                )
-                            }
-                    ) {
-                        Icon(
-                            imageVector = if (isDarkNow) Icons.Outlined.DarkMode else Icons.Outlined.LightMode,
-                            contentDescription = if (isDarkNow) {
-                                Strings.statusBarDarkModeLabel
-                            } else {
-                                Strings.statusBarLightModeLabel
-                            },
-                            modifier = Modifier.size(22.dp),
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-
-                    LanguageSelectorButton(
-                        onLanguageChanged = {
-
+                        } else {
                             scope.launch {
-                                snackbarHostState.showSnackbar(Strings.msgLanguageChanged)
+                                val newMode = if (switchToDark) {
+                                    ThemeManager.DarkModeSettings.DARK
+                                } else {
+                                    ThemeManager.DarkModeSettings.LIGHT
+                                }
+                                themeManager.setDarkMode(newMode)
                             }
                         }
-                    )
+                    }
 
                     Box {
                         IconButton(
@@ -383,75 +351,55 @@ fun HomeScreen(
                             onDismissRequest = { showMoreMenu = false }
                         ) {
                             DropdownMenuItem(
-                                text = { Text(Strings.menuAgent) },
-                                onClick = { showMoreMenu = false; onOpenAgent() },
-                                leadingIcon = { Icon(Icons.Outlined.Code, null, Modifier.size(20.dp)) }
+                                modifier = Modifier.onGloballyPositioned { coords ->
+                                    val bounds = coords.boundsInRoot()
+                                    themeActionCenter = androidx.compose.ui.geometry.Offset(
+                                        bounds.left + bounds.width / 2,
+                                        bounds.top + bounds.height / 2
+                                    )
+                                },
+                                text = {
+                                    Text(
+                                        if (isDarkNow) {
+                                            Strings.statusBarLightModeLabel
+                                        } else {
+                                            Strings.statusBarDarkModeLabel
+                                        }
+                                    )
+                                },
+                                onClick = {
+                                    showMoreMenu = false
+                                    toggleTheme()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        if (isDarkNow) Icons.Outlined.LightMode else Icons.Outlined.DarkMode,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
                             )
                             DropdownMenuItem(
-                                text = { Text(Strings.menuAiSettings) },
-                                onClick = { showMoreMenu = false; onOpenAiSettings() },
-                                leadingIcon = { Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(20.dp)) }
+                                text = { Text(Strings.languageSettings) },
+                                onClick = {},
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Outlined.Language,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                },
+                                trailingIcon = {
+                                    LanguageSelectorButton(
+                                        onLanguageChanged = {
+                                            scope.launch {
+                                                snackbarHostState.showSnackbar(Strings.msgLanguageChanged)
+                                            }
+                                        }
+                                    )
+                                }
                             )
                             HorizontalDivider()
-                            DropdownMenuItem(
-                                text = { Text(Strings.pluginsManageTitle) },
-                                onClick = { showMoreMenu = false; onOpenPlugins() },
-                                leadingIcon = { Icon(Icons.Outlined.Extension, null, Modifier.size(20.dp)) }
-                            )
-                            DropdownMenuItem(
-                                text = { Text(Strings.menuAppModifier) },
-                                onClick = { showMoreMenu = false; onOpenAppModifier() },
-                                leadingIcon = { Icon(Icons.Outlined.AppShortcut, null, Modifier.size(20.dp)) }
-                            )
-                            if (advancedFeatures) {
-                                DropdownMenuItem(
-                                    text = { Text(Strings.menuLinuxEnvironment) },
-                                    onClick = { showMoreMenu = false; onOpenLinuxEnvironment() },
-                                    leadingIcon = { Icon(Icons.Outlined.Terminal, null, Modifier.size(20.dp)) }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(Strings.menuRuntimeDeps) },
-                                    onClick = { showMoreMenu = false; onOpenRuntimeDeps() },
-                                    leadingIcon = { Icon(Icons.Outlined.Memory, null, Modifier.size(20.dp)) }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(Strings.menuPortManager) },
-                                    onClick = { showMoreMenu = false; onOpenPortManager() },
-                                    leadingIcon = { Icon(Icons.Outlined.Router, null, Modifier.size(20.dp)) }
-                                )
-                            }
-                            HorizontalDivider()
-                            DropdownMenuItem(
-                                text = { Text(Strings.menuBrowserKernel) },
-                                onClick = { showMoreMenu = false; onOpenBrowserKernel() },
-                                leadingIcon = { Icon(Icons.Outlined.Public, null, Modifier.size(20.dp)) }
-                            )
-                            DropdownMenuItem(
-                                text = { Text(Strings.menuHostsAdBlock) },
-                                onClick = { showMoreMenu = false; onOpenHostsAdBlock() },
-                                leadingIcon = { Icon(Icons.Outlined.Shield, null, Modifier.size(20.dp)) }
-                            )
-                            HorizontalDivider()
-                            DropdownMenuItem(
-                                text = { Text(Strings.menuStats) },
-                                onClick = { showMoreMenu = false; onOpenStats() },
-                                leadingIcon = { Icon(Icons.Outlined.BarChart, null, Modifier.size(20.dp)) }
-                            )
-                            DropdownMenuItem(
-                                text = { Text(Strings.menuGooglePlay) },
-                                onClick = { showMoreMenu = false; onOpenPlayStore() },
-                                leadingIcon = { Icon(Icons.Outlined.PlayCircleOutline, null, Modifier.size(20.dp)) }
-                            )
-                            DropdownMenuItem(
-                                text = { Text(Strings.menuFileManager) },
-                                onClick = { showMoreMenu = false; onOpenFileManager() },
-                                leadingIcon = { Icon(Icons.Outlined.Folder, null, Modifier.size(20.dp)) }
-                            )
-                            DropdownMenuItem(
-                                text = { Text(Strings.dataBackupTitle) },
-                                onClick = { showMoreMenu = false; showDataBackupDialog = true },
-                                leadingIcon = { Icon(Icons.Outlined.Inventory2, null, Modifier.size(20.dp)) }
-                            )
                             DropdownMenuItem(
                                 text = { Text(Strings.uiConfig) },
                                 onClick = { showMoreMenu = false; onOpenSettings() },
@@ -1032,24 +980,81 @@ fun HomeScreen(
                                         .padding(10.dp),
                                     verticalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    createActionItems.chunked(3).forEach { rowItems ->
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    createActionItems.firstOrNull()?.let { item ->
+                                        CreateActionTile(
+                                            label = item.label,
+                                            iconRes = item.iconRes,
+                                            onClick = {
+                                                showFabMenu = false
+                                                item.onClick()
+                                            },
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+                                    }
+
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .clickable { otherAppTypesExpanded = !otherAppTypesExpanded }
+                                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "Other App Types",
+                                            style = MaterialTheme.typography.titleSmall,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        Icon(
+                                            imageVector = if (otherAppTypesExpanded) {
+                                                Icons.Outlined.ExpandLess
+                                            } else {
+                                                Icons.Outlined.ExpandMore
+                                            },
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+
+                                    AnimatedVisibility(
+                                        visible = otherAppTypesExpanded,
+                                        enter = expandVertically(
+                                            animationSpec = spring(
+                                                dampingRatio = 0.85f,
+                                                stiffness = Spring.StiffnessMedium
+                                            )
+                                        ) + fadeIn(),
+                                        exit = shrinkVertically(
+                                            animationSpec = spring(
+                                                dampingRatio = 0.85f,
+                                                stiffness = Spring.StiffnessMedium
+                                            )
+                                        ) + fadeOut()
+                                    ) {
+                                        Column(
+                                            verticalArrangement = Arrangement.spacedBy(8.dp)
                                         ) {
-                                            rowItems.forEach { item ->
-                                                CreateActionTile(
-                                                    label = item.label,
-                                                    iconRes = item.iconRes,
-                                                    onClick = {
-                                                        showFabMenu = false
-                                                        item.onClick()
-                                                    },
-                                                    modifier = Modifier.weight(1f)
-                                                )
-                                            }
-                                            repeat(3 - rowItems.size) {
-                                                Spacer(modifier = Modifier.weight(1f))
+                                            createActionItems.drop(1).chunked(3).forEach { rowItems ->
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                                ) {
+                                                    rowItems.forEach { item ->
+                                                        CreateActionTile(
+                                                            label = item.label,
+                                                            iconRes = item.iconRes,
+                                                            onClick = {
+                                                                showFabMenu = false
+                                                                item.onClick()
+                                                            },
+                                                            modifier = Modifier.weight(1f)
+                                                        )
+                                                    }
+                                                    repeat(3 - rowItems.size) {
+                                                        Spacer(modifier = Modifier.weight(1f))
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -1337,6 +1342,7 @@ fun AppCard(
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
+    var showMoreActions by remember { mutableStateOf(false) }
     val colors = MaterialTheme.colorScheme
     val secondaryText = when (app.appType) {
         com.webtoapp.data.model.AppType.IMAGE -> app.url.ifBlank { Strings.appTypeImage }
@@ -1539,7 +1545,10 @@ fun AppCard(
 
                 DropdownMenu(
                     expanded = expanded,
-                    onDismissRequest = { expanded = false }
+                    onDismissRequest = {
+                        expanded = false
+                        showMoreActions = false
+                    }
                 ) {
                     if (app.appType == com.webtoapp.data.model.AppType.WEB) {
                         com.webtoapp.ui.design.WtaDropdownMenuItem(
@@ -1568,15 +1577,6 @@ fun AppCard(
                             }
                         )
                     }
-                    HorizontalDivider()
-                    com.webtoapp.ui.design.WtaDropdownMenuItem(
-                        text = Strings.btnShortcut,
-                        leadingIcon = Icons.Outlined.AppShortcut,
-                        onClick = {
-                            expanded = false
-                            onCreateShortcut()
-                        }
-                    )
                     com.webtoapp.ui.design.WtaDropdownMenuItem(
                         text = Strings.buildDialogTitle,
                         leadingIcon = Icons.Outlined.InstallMobile,
@@ -1585,48 +1585,80 @@ fun AppCard(
                             onBuildApk()
                         }
                     )
-                    com.webtoapp.ui.design.WtaDropdownMenuItem(
-                        text = Strings.shareApk,
-                        leadingIcon = Icons.Outlined.Share,
-                        onClick = {
-                            expanded = false
-                            onShareApk()
+                    DropdownMenuItem(
+                        text = { Text("More Actions") },
+                        onClick = { showMoreActions = !showMoreActions },
+                        leadingIcon = {
+                            Icon(Icons.Outlined.MoreHoriz, contentDescription = null)
+                        },
+                        trailingIcon = {
+                            Icon(
+                                if (showMoreActions) Icons.Outlined.ExpandLess
+                                else Icons.Outlined.ExpandMore,
+                                contentDescription = null
+                            )
                         }
                     )
-                    com.webtoapp.ui.design.WtaDropdownMenuItem(
-                        text = Strings.exportAppSource,
-                        leadingIcon = Icons.Outlined.Code,
-                        onClick = {
-                            expanded = false
-                            onExport()
+                    AnimatedVisibility(visible = showMoreActions) {
+                        Column {
+                            com.webtoapp.ui.design.WtaDropdownMenuItem(
+                                text = Strings.btnShortcut,
+                                leadingIcon = Icons.Outlined.AppShortcut,
+                                onClick = {
+                                    expanded = false
+                                    showMoreActions = false
+                                    onCreateShortcut()
+                                }
+                            )
+                            com.webtoapp.ui.design.WtaDropdownMenuItem(
+                                text = Strings.shareApk,
+                                leadingIcon = Icons.Outlined.Share,
+                                onClick = {
+                                    expanded = false
+                                    showMoreActions = false
+                                    onShareApk()
+                                }
+                            )
+                            com.webtoapp.ui.design.WtaDropdownMenuItem(
+                                text = Strings.exportAppSource,
+                                leadingIcon = Icons.Outlined.Code,
+                                onClick = {
+                                    expanded = false
+                                    showMoreActions = false
+                                    onExport()
+                                }
+                            )
+                            com.webtoapp.ui.design.WtaDropdownMenuItem(
+                                text = Strings.moveToCategory,
+                                leadingIcon = Icons.Outlined.Folder,
+                                onClick = {
+                                    expanded = false
+                                    showMoreActions = false
+                                    onMoveToCategory()
+                                }
+                            )
+                            com.webtoapp.ui.design.WtaDropdownMenuItem(
+                                text = Strings.clearAppCacheMenu,
+                                leadingIcon = Icons.Outlined.CleaningServices,
+                                onClick = {
+                                    expanded = false
+                                    showMoreActions = false
+                                    onClearCache()
+                                }
+                            )
+                            HorizontalDivider()
+                            com.webtoapp.ui.design.WtaDropdownMenuItem(
+                                text = Strings.btnDelete,
+                                leadingIcon = Icons.Outlined.Delete,
+                                destructive = true,
+                                onClick = {
+                                    expanded = false
+                                    showMoreActions = false
+                                    onDelete()
+                                }
+                            )
                         }
-                    )
-                    com.webtoapp.ui.design.WtaDropdownMenuItem(
-                        text = Strings.moveToCategory,
-                        leadingIcon = Icons.Outlined.Folder,
-                        onClick = {
-                            expanded = false
-                            onMoveToCategory()
-                        }
-                    )
-                    com.webtoapp.ui.design.WtaDropdownMenuItem(
-                        text = Strings.clearAppCacheMenu,
-                        leadingIcon = Icons.Outlined.CleaningServices,
-                        onClick = {
-                            expanded = false
-                            onClearCache()
-                        }
-                    )
-                    HorizontalDivider()
-                    com.webtoapp.ui.design.WtaDropdownMenuItem(
-                        text = Strings.btnDelete,
-                        leadingIcon = Icons.Outlined.Delete,
-                        destructive = true,
-                        onClick = {
-                            expanded = false
-                            onDelete()
-                        }
-                    )
+                    }
                 }
             }
         }
@@ -1806,4 +1838,3 @@ private fun CreateActionTile(
         )
     }
 }
-

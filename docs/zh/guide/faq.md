@@ -14,7 +14,7 @@ Android 6.0(API 23)或更高。
 
 ### 构建应用需要电脑吗?
 
-不需要。整个构建 —— 二进制打补丁、签名、AAB 导出 —— 都在设备上完成。只有当你想从源码构建 WebToApp 本身时才需要电脑。
+不需要。整个 APK 构建 —— 二进制打补丁和签名 —— 都在设备上完成。只有当你想从源码构建 WebToApp 本身时才需要电脑。
 
 ### 这和网址套壳应用有什么不同?
 
@@ -49,17 +49,9 @@ Android 6.0(API 23)或更高。
 
 见[构建 APK](/zh/guide/app-actions/build-apk)。
 
-### APK 导出和 AAB 导出有什么区别?
-
-**构建 APK** 产生一个可安装的已签名 APK。**AAB 导出**(从 [Google Play](/zh/guide/more-features/google-play))产生 Play 级打包,并把 `targetSdk` 重写到 Play 要求的级别。见 [APK导出配置](/zh/guide/app-actions/edit-common-config/apk-export)。
-
-### 我的应用能上架 Google Play 吗?
-
-通常可以。Web、多网站、HTML、离线包、Frontend、媒体和图库应用都能导出 Play 级 AAB。两类不行:**Node.js / PHP / Python / Go / WordPress** 应用,以及任何开启**资源加密**的构建。见 [Google Play](/zh/guide/more-features/google-play)。
-
 ### 生成的应用使用什么 targetSdk?
 
-生成的 APK 继承 shell 模板的 `targetSdk`(当前 35)和 `minSdk` 23。Node.js、PHP、Python、Go、WordPress 会被固定到 targetSdk 28,以便执行内置运行时,自定义 targetSdk 对它们无效。其他类型可在[APK导出配置](/zh/guide/app-actions/edit-common-config/apk-export)里固定 targetSdk 28/31/33/34/35/36,任意类型都可以把 minSdk 从 23 提高到当前 targetSdk。面向 Play 时,AAB 导出器会把 `targetSdk` 重写到 Play 要求的级别。
+生成的 APK 继承 shell 模板的 `targetSdk`(当前 35)和 `minSdk` 23。Node.js、PHP、Python、Go、WordPress 会被固定到 targetSdk 28,以便执行内置运行时,自定义 targetSdk 对它们无效。其他类型可在[APK导出配置](/zh/guide/app-actions/edit-common-config/apk-export)里固定 targetSdk 28/31/33/34/35/36,任意类型都可以把 minSdk 从 23 提高到当前 targetSdk。
 
 ### 如何用自己的密钥签名?
 
@@ -67,7 +59,7 @@ Android 6.0(API 23)或更高。
 
 ### 构建产物存在哪里?
 
-在[文件管理](/zh/guide/more-features/file-manager)中 —— APK 构建、AAB 导出、应用克隆和构建日志。
+在[文件管理](/zh/guide/more-features/file-manager)中 —— APK 构建、应用克隆和构建日志。
 
 ## 运行时
 

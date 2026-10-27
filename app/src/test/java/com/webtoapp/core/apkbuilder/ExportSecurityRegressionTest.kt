@@ -14,7 +14,6 @@ import com.webtoapp.data.model.NativeBridgeCapabilities
 import com.webtoapp.data.model.NodeJsConfig
 import com.webtoapp.data.model.WebApp
 import com.webtoapp.data.model.WebViewConfig
-import com.webtoapp.core.playstore.aab.axml.AxmlToProtoXml
 import java.io.File
 import java.util.zip.ZipFile
 import org.junit.Assume.assumeTrue
@@ -445,18 +444,13 @@ class ExportSecurityRegressionTest {
             )
         )
 
-        val application = AxmlToProtoXml.convert(modified)
-            .element
-            .childList
-            .filter { it.hasElement() }
-            .map { it.element }
+        val application = BinaryAxmlTestSupport.parse(modified)
+            .children
             .single { it.name == "application" }
-        val componentNames = application.childList
-            .filter { it.hasElement() }
-            .map { it.element }
+        val componentNames = application.children
             .filter { it.name in setOf("service", "receiver", "provider") }
             .mapNotNull { element ->
-                element.attributeList.firstOrNull { it.name == "name" }?.value
+                element.attributes.firstOrNull { it.name == "name" }?.value
             }
 
         assertThat(componentNames).contains("androidx.core.content.FileProvider")

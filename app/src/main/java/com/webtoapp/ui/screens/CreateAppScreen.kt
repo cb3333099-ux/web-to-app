@@ -66,6 +66,7 @@ import com.webtoapp.ui.design.*
 import com.webtoapp.core.pwa.PwaAnalysisResult
 import com.webtoapp.core.pwa.PwaAnalysisState
 import com.webtoapp.core.pwa.PwaDataSource
+import com.webtoapp.util.AppConstants
 
 @OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
@@ -125,6 +126,7 @@ fun CreateAppScreen(
     val canPreview = editState.hasPreviewableContent() &&
         !isPreviewSaving &&
         uiState !is UiState.Loading
+    val showAdvancedSettings = isEdit
 
     fun launchPreview() {
         if (!canPreview) return
@@ -194,6 +196,16 @@ fun CreateAppScreen(
                     editState = editState,
                     onNameChange = { viewModel.updateEditState { copy(name = it) } },
                     onUrlChange = { viewModel.updateEditState { copy(url = it) } },
+                    showPackageName = !isEdit,
+                    onPackageNameChange = { packageName ->
+                        viewModel.updateEditState {
+                            copy(
+                                apkExportConfig = apkExportConfig.copy(
+                                    customPackageName = packageName.ifBlank { null }
+                                )
+                            )
+                        }
+                    },
                     onSelectIcon = { imagePickerLauncher.launch("image/*") },
                     onSelectIconFromLibrary = { path ->
                         viewModel.updateEditState { copy(savedIconPath = path, iconUri = null) }
@@ -206,29 +218,30 @@ fun CreateAppScreen(
                 )
             }
 
-            item {
-                if (editState.appType == AppType.WEB) {
-                    PwaAnalysisSection(
-                        viewModel = viewModel,
-                        editState = editState
+            if (showAdvancedSettings) {
+                item {
+                    if (editState.appType == AppType.WEB) {
+                        PwaAnalysisSection(
+                            viewModel = viewModel,
+                            editState = editState
+                        )
+                    }
+                }
+
+                item {
+                    ActivationCodeCard(
+                        enabled = editState.activationEnabled,
+                        activationCodes = editState.activationCodeList,
+                        requireEveryTime = editState.activationRequireEveryTime,
+                        dialogConfig = editState.activationDialogConfig,
+                        remoteConfig = editState.activationRemoteConfig ?: com.webtoapp.data.model.RemoteActivationConfig(),
+                        onEnabledChange = { viewModel.updateEditState { copy(activationEnabled = it) } },
+                        onCodesChange = { viewModel.updateEditState { copy(activationCodeList = it) } },
+                        onRequireEveryTimeChange = { viewModel.updateEditState { copy(activationRequireEveryTime = it) } },
+                        onDialogConfigChange = { viewModel.updateEditState { copy(activationDialogConfig = it) } },
+                        onRemoteConfigChange = { viewModel.updateEditState { copy(activationRemoteConfig = it) } }
                     )
                 }
-            }
-
-            item {
-                ActivationCodeCard(
-                    enabled = editState.activationEnabled,
-                    activationCodes = editState.activationCodeList,
-                    requireEveryTime = editState.activationRequireEveryTime,
-                    dialogConfig = editState.activationDialogConfig,
-                    remoteConfig = editState.activationRemoteConfig ?: com.webtoapp.data.model.RemoteActivationConfig(),
-                    onEnabledChange = { viewModel.updateEditState { copy(activationEnabled = it) } },
-                    onCodesChange = { viewModel.updateEditState { copy(activationCodeList = it) } },
-                    onRequireEveryTimeChange = { viewModel.updateEditState { copy(activationRequireEveryTime = it) } },
-                    onDialogConfigChange = { viewModel.updateEditState { copy(activationDialogConfig = it) } },
-                    onRemoteConfigChange = { viewModel.updateEditState { copy(activationRemoteConfig = it) } }
-                )
-            }
 
             item {
                 BrowserToolbarCard(
@@ -548,8 +561,9 @@ fun CreateAppScreen(
                 )
             }
 
-            item {
-                Spacer(modifier = Modifier.height(24.dp))
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
             }
         }
     }
@@ -839,6 +853,8 @@ fun BasicInfoCard(
     editState: EditState,
     onNameChange: (String) -> Unit,
     onUrlChange: (String) -> Unit,
+    showPackageName: Boolean = false,
+    onPackageNameChange: (String) -> Unit = {},
     onSelectIcon: () -> Unit,
     onSelectIconFromLibrary: (String) -> Unit = {},
     onIconBackgroundColorChange: (String?) -> Unit = {}
@@ -994,6 +1010,41 @@ fun BasicInfoCard(
                             )
                         )
                     }
+                }
+
+                if (showPackageName && editState.appType == AppType.WEB) {
+                    val packageName = editState.apkExportConfig.customPackageName ?: ""
+                    val isPackageNameInvalid = packageName.isNotBlank() &&
+                        !packageName.matches(AppConstants.PACKAGE_NAME_REGEX)
+
+                    PremiumTextField(
+                        value = packageName,
+                        onValueChange = onPackageNameChange,
+                        label = { Text(Strings.customPackageName) },
+                        placeholder = { Text(Strings.apkPackageNamePlaceholder) },
+                        leadingIcon = { Icon(Icons.Outlined.Android, null) },
+                        singleLine = true,
+                        isError = isPackageNameInvalid,
+                        supportingText = {
+                            Text(
+                                if (isPackageNameInvalid) {
+                                    Strings.packageNameInvalidFormat
+                                } else {
+                                    Strings.packageNameHint
+                                },
+                                color = if (isPackageNameInvalid) {
+                                    MaterialTheme.colorScheme.error
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                }
+                            )
+                        },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Ascii,
+                            imeAction = ImeAction.Done
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
             }
         }

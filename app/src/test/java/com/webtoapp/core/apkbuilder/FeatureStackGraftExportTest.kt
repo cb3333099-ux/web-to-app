@@ -1,9 +1,7 @@
 package com.webtoapp.core.apkbuilder
 
 import androidx.test.core.app.ApplicationProvider
-import com.android.aapt.Resources.XmlElement
 import com.google.common.truth.Truth.assertThat
-import com.webtoapp.core.playstore.aab.axml.AxmlToProtoXml
 import com.webtoapp.data.model.AdConfig
 import com.webtoapp.data.model.ApkExportConfig
 import com.webtoapp.data.model.WebApp
@@ -66,17 +64,16 @@ class FeatureStackGraftExportTest {
             entryNames(tmp).also { tmp.delete() }
         }
 
-    private fun manifestElements(apk: File): XmlElement =
-        AxmlToProtoXml.convert(
+    private fun manifestElements(apk: File): BinaryAxmlTestSupport.Element =
+        BinaryAxmlTestSupport.parse(
             checkNotNull(zipEntry(apk, "AndroidManifest.xml"))
-        ).element
+        )
 
-    private fun elementsNamed(el: XmlElement, name: String): List<XmlElement> =
-        el.childList.filter { it.hasElement() && it.element.name == name }
-            .map { it.element }
+    private fun elementsNamed(el: BinaryAxmlTestSupport.Element, name: String): List<BinaryAxmlTestSupport.Element> =
+        el.children.filter { it.name == name }
 
-    private fun XmlElement.attrValue(name: String): String? =
-        attributeList.firstOrNull { it.name == name }?.value
+    private fun BinaryAxmlTestSupport.Element.attrValue(name: String): String? =
+        attributes.firstOrNull { it.name == name }?.value
 
     @Test
     fun `ads-enabled export grafts dex res arsc and manifest components`() {

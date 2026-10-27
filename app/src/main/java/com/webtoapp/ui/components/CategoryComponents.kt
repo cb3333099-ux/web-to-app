@@ -37,6 +37,7 @@ fun CategoryTabRow(
 ) {
     var showCategoryMenu by remember { mutableStateOf<AppCategory?>(null) }
     var showDeleteConfirm by remember { mutableStateOf<AppCategory?>(null) }
+    var showCategoryManagementMenu by remember { mutableStateOf(false) }
 
     LazyRow(
         modifier = modifier
@@ -124,40 +125,44 @@ fun CategoryTabRow(
         }
 
         item {
+            Box {
+                IconButton(
+                    onClick = { showCategoryManagementMenu = true },
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(
+                        Icons.Outlined.Tune,
+                        contentDescription = Strings.manageCategories,
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
 
-            Row(
-                modifier = Modifier
-                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(com.webtoapp.ui.design.WtaRadius.Chip))
-                    .clickable(onClick = onAddCategory)
-                    .padding(horizontal = 12.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    Icons.Default.Add,
-                    contentDescription = null,
-                    modifier = Modifier.size(14.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(Modifier.width(6.dp))
-                Text(
-                    Strings.addCategory,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-
-        item {
-            IconButton(
-                onClick = onManageCategories,
-                modifier = Modifier.size(28.dp)
-            ) {
-                Icon(
-                    Icons.Outlined.Tune,
-                    contentDescription = Strings.manageCategories,
-                    modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                DropdownMenu(
+                    expanded = showCategoryManagementMenu,
+                    onDismissRequest = { showCategoryManagementMenu = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text(Strings.addCategory) },
+                        onClick = {
+                            showCategoryManagementMenu = false
+                            onAddCategory()
+                        },
+                        leadingIcon = {
+                            Icon(Icons.Default.Add, contentDescription = null)
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(Strings.manageCategories) },
+                        onClick = {
+                            showCategoryManagementMenu = false
+                            onManageCategories()
+                        },
+                        leadingIcon = {
+                            Icon(Icons.Outlined.Tune, contentDescription = null)
+                        }
+                    )
+                }
             }
         }
     }

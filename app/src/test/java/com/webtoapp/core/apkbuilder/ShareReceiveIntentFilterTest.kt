@@ -1,8 +1,6 @@
 package com.webtoapp.core.apkbuilder
 
-import com.android.aapt.Resources
 import com.google.common.truth.Truth.assertThat
-import com.webtoapp.core.playstore.aab.axml.AxmlToProtoXml
 import java.io.File
 import java.util.zip.ZipFile
 import org.junit.Assume.assumeTrue
@@ -61,45 +59,31 @@ class ShareReceiveIntentFilterTest {
     )
 
     /** All intent-filters declared on ShellActivity, decoded. */
-    private fun shellActivityFilters(axml: ByteArray): List<Resources.XmlElement> {
-        val application = AxmlToProtoXml.convert(axml)
-            .element
-            .childList
-            .filter { it.hasElement() }
-            .map { it.element }
+    private fun shellActivityFilters(axml: ByteArray): List<BinaryAxmlTestSupport.Element> {
+        val application = BinaryAxmlTestSupport.parse(axml)
+            .children
             .single { it.name == "application" }
 
-        val activity = application.childList
-            .filter { it.hasElement() }
-            .map { it.element }
+        val activity = application.children
             .filter { it.name == "activity" }
             .single { element ->
-                element.attributeList.any { it.name == "name" && it.value == shellActivity }
+                element.attributes.any { it.name == "name" && it.value == shellActivity }
             }
 
-        return activity.childList
-            .filter { it.hasElement() }
-            .map { it.element }
-            .filter { it.name == "intent-filter" }
+        return activity.children.filter { it.name == "intent-filter" }
     }
 
-    private fun Resources.XmlElement.actions(): List<String> = childList
-        .filter { it.hasElement() }
-        .map { it.element }
+    private fun BinaryAxmlTestSupport.Element.actions(): List<String> = children
         .filter { it.name == "action" }
-        .mapNotNull { element -> element.attributeList.firstOrNull { it.name == "name" }?.value }
+        .mapNotNull { element -> element.attributes.firstOrNull { it.name == "name" }?.value }
 
-    private fun Resources.XmlElement.categories(): List<String> = childList
-        .filter { it.hasElement() }
-        .map { it.element }
+    private fun BinaryAxmlTestSupport.Element.categories(): List<String> = children
         .filter { it.name == "category" }
-        .mapNotNull { element -> element.attributeList.firstOrNull { it.name == "name" }?.value }
+        .mapNotNull { element -> element.attributes.firstOrNull { it.name == "name" }?.value }
 
-    private fun Resources.XmlElement.mimeTypes(): List<String> = childList
-        .filter { it.hasElement() }
-        .map { it.element }
+    private fun BinaryAxmlTestSupport.Element.mimeTypes(): List<String> = children
         .filter { it.name == "data" }
-        .mapNotNull { element -> element.attributeList.firstOrNull { it.name == "mimeType" }?.value }
+        .mapNotNull { element -> element.attributes.firstOrNull { it.name == "mimeType" }?.value }
 
     @Test
     fun `image share registers send and send_multiple with the mime filter`() {

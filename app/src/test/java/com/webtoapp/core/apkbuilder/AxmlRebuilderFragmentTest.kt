@@ -1,8 +1,6 @@
 package com.webtoapp.core.apkbuilder
 
 import com.google.common.truth.Truth.assertThat
-import com.webtoapp.core.playstore.aab.axml.AxmlToProtoXml
-import com.android.aapt.Resources.XmlElement
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -25,19 +23,17 @@ class AxmlRebuilderFragmentTest {
     private fun fixture(): ByteArray =
         javaClass.classLoader.getResourceAsStream("axml/base_manifest.axml")!!.readBytes()
 
-    private fun merged(fragment: String, vars: Map<String, String> = emptyMap()): XmlElement {
-        val node = AxmlToProtoXml.convert(
+    private fun merged(fragment: String, vars: Map<String, String> = emptyMap()): BinaryAxmlTestSupport.Element {
+        return BinaryAxmlTestSupport.parse(
             rebuilder.mergeManifestFragment(fixture(), fragment.toByteArray(), vars)
         )
-        assertThat(node.hasElement()).isTrue()
-        return node.element
     }
 
-    private fun children(el: XmlElement, name: String) =
-        el.childList.filter { it.hasElement() && it.element.name == name }.map { it.element }
+    private fun children(el: BinaryAxmlTestSupport.Element, name: String) =
+        el.children.filter { it.name == name }
 
-    private fun XmlElement.attr(name: String) =
-        attributeList.firstOrNull { it.name == name }
+    private fun BinaryAxmlTestSupport.Element.attr(name: String) =
+        attributes.firstOrNull { it.name == name }
 
     @Test
     fun `uses-permission is added once and existing ones are not duplicated`() {
@@ -102,8 +98,8 @@ class AxmlRebuilderFragmentTest {
             .isEqualTo("com.google.android.gms.ads.MobileAdsInitProvider")
         assertThat(provider.attr("authorities")!!.value)
             .isEqualTo("com.example.app.mobileadsinitprovider")
-        assertThat(provider.attr("exported")!!.compiledItem.prim.booleanValue).isFalse()
-        assertThat(provider.attr("initOrder")!!.compiledItem.prim.intDecimalValue).isEqualTo(100)
+        assertThat(provider.attr("exported")!!.data).isEqualTo(0)
+        assertThat(provider.attr("initOrder")!!.data).isEqualTo(100)
 
         val meta = children(app, "meta-data")
             .single { it.attr("name")!!.value == "com.google.android.gms.ads.APPLICATION_ID" }
@@ -131,11 +127,10 @@ class AxmlRebuilderFragmentTest {
             .single { it.attr("name")!!.value == "com.google.android.gms.ads.AdActivity" }
 
         val theme = activity.attr("theme")!!
-        assertThat(theme.compiledItem.hasRef()).isTrue()
-        assertThat(theme.compiledItem.ref.id).isEqualTo(0x0103000f)
+        assertThat(theme.type).isEqualTo(0x01)
+        assertThat(theme.data).isEqualTo(0x0103000f)
 
-        val config = activity.attr("configChanges")!!.compiledItem
-        assertThat(config.prim.intHexadecimalValue)
+        assertThat(activity.attr("configChanges")!!.data)
             .isEqualTo(0x0010 or 0x0080 or 0x0400)
     }
 
@@ -168,8 +163,8 @@ class AxmlRebuilderFragmentTest {
 
         assertThat(injected).isNotEmpty()
         injected.forEach { el ->
-            val resIds = el.attributeList.map { it.resourceId }.filter { it != 0 }
-            assertThat(resIds).isInOrder()
+            val resIds = el.attributes.map { it.resourceId }.filter { it != 0 }
+            assertThat(resIds.zipWithNext().all { (left, right) -> left <= right }).isTrue()
         }
     }
 

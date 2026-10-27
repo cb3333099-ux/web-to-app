@@ -47,7 +47,7 @@ android {
         buildConfigField("boolean", "FDROID", isFdroidBuild.toString())
 
         // Generated APKs inherit this targetSdk; export can still pin a different
-        // value via `targetSdk` override, and the Play/AAB path forces 36.
+        // value via `targetSdk` override.
 
         vectorDrawables {
             useSupportLibrary = true

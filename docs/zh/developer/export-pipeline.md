@@ -19,7 +19,7 @@
 | `RuntimeAssetEmbedder.kt` | 把运行时资源(Node/PHP/Python/Go)注入 APK。 |
 | `NetworkSecurityConfigBuilder.kt` | 生成网络安全配置 XML。 |
 
-相关:`core/playstore/aab/` 负责 AAB/Play 打包;`core/crypto/`(`AssetEncryptor`、`EncryptedApkBuilder`、`KeyManager`)负责资源加密。
+相关:`core/crypto/`(`AssetEncryptor`、`EncryptedApkBuilder`、`KeyManager`)负责资源加密。
 
 ## 流程
 

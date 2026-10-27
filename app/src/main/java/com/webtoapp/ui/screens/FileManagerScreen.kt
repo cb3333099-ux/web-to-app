@@ -90,7 +90,6 @@ import java.util.Locale
 
 private enum class FileSection(val dirName: String) {
     APK("built_apks"),
-    AAB("built_aabs"),
     CLONED("cloned_apks"),
     UPDATE_APKS("update_apks"),
     LOGS("build_logs"),
@@ -100,7 +99,7 @@ private enum class FileSection(val dirName: String) {
     val isUserProjects: Boolean get() = this == USER_PROJECTS
     val canInstall: Boolean get() = this == APK || this == CLONED || this == UPDATE_APKS
     val canShare: Boolean get() = this != USER_PROJECTS
-    val canOpen: Boolean get() = this == AAB || this == LOGS
+    val canOpen: Boolean get() = this == LOGS
 }
 
 private enum class FileSortMode {
@@ -942,7 +941,6 @@ private fun FileEntryRow(
 
 private fun sectionLabel(section: FileSection): String = when (section) {
     FileSection.APK -> Strings.fileManagerSectionApk
-    FileSection.AAB -> Strings.fileManagerSectionAab
     FileSection.CLONED -> Strings.fileManagerSectionCloned
     FileSection.UPDATE_APKS -> Strings.fileManagerSectionUpdateApks
     FileSection.LOGS -> Strings.fileManagerSectionLogs

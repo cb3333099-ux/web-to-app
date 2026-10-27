@@ -6,7 +6,7 @@ import org.junit.Test
 /**
  * Guards [AppType.requiresProcessExec] — the single source of truth for "server-runtime app
  * type". These types must keep targetSdk <= 28 (targetSdk >= 29 enforces W^X and breaks the
- * fork+exec of their bundled binaries), and the Play policy checker blocks them from AAB export.
+ * fork+exec of their bundled binaries).
  */
 class AppTypeRequiresProcessExecTest {
 

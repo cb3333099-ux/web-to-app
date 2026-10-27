@@ -17,7 +17,7 @@ object GeneratedSdkLevels {
     /** First raise that actually changes install/signing behavior (V1 optional). */
     const val DEFAULT_RAISED_MIN_SDK = 24
 
-    /** Sideload chips. Play AAB export still forces the Play-required level. */
+    /** Target SDK choices for generated APKs. */
     val TARGET_SDK_CHOICES = listOf(28, 31, 33, 34, 35, 36)
 
     /** Raise-only floors. The UI drops values above the effective targetSdk. */

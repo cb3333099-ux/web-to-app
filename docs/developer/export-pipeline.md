@@ -19,7 +19,7 @@ The export pipeline turns a `WebApp` model into a signed APK. It lives in `app/s
 | `RuntimeAssetEmbedder.kt` | Injects runtime assets (Node/PHP/Python/Go) into the APK. |
 | `NetworkSecurityConfigBuilder.kt` | Generates the network security config XML. |
 
-Related: `core/playstore/aab/` handles AAB/Play packaging; `core/crypto/` (`AssetEncryptor`, `EncryptedApkBuilder`, `KeyManager`) handles asset encryption.
+Related: `core/crypto/` (`AssetEncryptor`, `EncryptedApkBuilder`, `KeyManager`) handles asset encryption.
 
 ## The flow
 

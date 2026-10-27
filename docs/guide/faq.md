@@ -14,7 +14,7 @@ Android 6.0 (API 23) or newer.
 
 ### Do I need a PC to build apps?
 
-No. The entire build — binary patching, signing, and AAB export — happens on-device. A PC is only needed if you want to build WebToApp itself from source.
+No. The entire APK build — binary patching and signing — happens on-device. A PC is only needed if you want to build WebToApp itself from source.
 
 ### How is this different from a URL-wrapper app?
 
@@ -49,17 +49,9 @@ Rebuilds are incremental and content-addressed:
 
 See [Build APK](/guide/app-actions/build-apk).
 
-### What's the difference between APK and AAB export?
-
-**Build APK** produces an installable, signed APK. **AAB export** (from [Google Play](/guide/more-features/google-play)) produces a Play-ready bundle and rewrites `targetSdk` to the Play-required level. See [APK Export Config](/guide/app-actions/edit-common-config/apk-export).
-
-### Can I publish my app to Google Play?
-
-Usually yes. Web, Multi-Web, HTML, Offline Pack, Frontend, Media, and Gallery apps all export a Play-ready AAB. Two cases cannot: **Node.js / PHP / Python / Go / WordPress** apps, and any build with **resource encryption** enabled. See [Google Play](/guide/more-features/google-play).
-
 ### What targetSdk do generated apps use?
 
-Generated APKs inherit the shell template's `targetSdk` (currently 35) and `minSdk` 23. Node.js, PHP, Python, Go, and WordPress APKs are pinned to targetSdk 28 so they can exec bundled binaries; the targetSdk override does not apply to them. Other types can pin targetSdk 28/31/33/34/35/36, and any type can raise minSdk from 23 up to the current targetSdk, from [APK Export Config](/guide/app-actions/edit-common-config/apk-export). The AAB exporter rewrites `targetSdk` to the Play-required level.
+Generated APKs inherit the shell template's `targetSdk` (currently 35) and `minSdk` 23. Node.js, PHP, Python, Go, and WordPress APKs are pinned to targetSdk 28 so they can exec bundled binaries; the targetSdk override does not apply to them. Other types can pin targetSdk 28/31/33/34/35/36, and any type can raise minSdk from 23 up to the current targetSdk, from [APK Export Config](/guide/app-actions/edit-common-config/apk-export).
 
 ### How do I sign with my own key?
 
@@ -67,7 +59,7 @@ Create or import a keystore (PKCS12/PFX/JKS/BKS) and choose the signature scheme
 
 ### Where are build outputs stored?
 
-In the [File Manager](/guide/more-features/file-manager) — APK builds, AAB exports, app clones, and build logs.
+In the [File Manager](/guide/more-features/file-manager) — APK builds, app clones, and build logs.
 
 ## Runtimes
 

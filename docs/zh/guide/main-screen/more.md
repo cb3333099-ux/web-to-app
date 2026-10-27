@@ -21,7 +21,6 @@
 | **Hosts 拦截** | [Hosts 拦截](/zh/guide/more-features/hosts-adblock) |
 | ── | ── |
 | **使用统计** | [使用统计](/zh/guide/more-features/usage-stats) |
-| **Google Play** | [Google Play](/zh/guide/more-features/google-play) |
 | **文件管理** | [文件管理](/zh/guide/more-features/file-manager) |
 | **数据备份** | [数据备份](/zh/guide/more-features/data-backup) |
 | **关于** | [关于](/zh/guide/more-features/about) |

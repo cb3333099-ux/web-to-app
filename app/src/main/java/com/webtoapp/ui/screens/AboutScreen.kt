@@ -59,6 +59,7 @@ import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material.icons.outlined.Tag
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -141,20 +142,9 @@ fun AboutScreen(onBack: () -> Unit) {
                 versionCode = versionCode
             )
 
-            ContactGrid()
-
-            DescriptionsToggleCard()
-
-            SeparateTasksCard()
-            AdvancedFeaturesCard()
-
-            LocalMcpCard()
-
-            OtherProjectsSection()
+            ProjectAcademicSection()
 
             LegalTabContent()
-
-            MadeWithLoveFooter()
         }
     }
 }
@@ -384,7 +374,6 @@ private fun AuthorHeroCard(
     versionCode: Long
 ) {
     val context = LocalContext.current
-    val byLine = aboutAuthorByLine()
     val versionCopied = versionCopiedToast()
     val scope = androidx.compose.runtime.rememberCoroutineScope()
 
@@ -515,7 +504,7 @@ private fun AuthorHeroCard(
             Spacer(Modifier.height(18.dp))
 
             Text(
-                text = "WebToApp",
+                text = "WebToApp | Website-to-Android Builder",
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center
@@ -526,7 +515,7 @@ private fun AuthorHeroCard(
                     Spacer(Modifier.height(4.dp))
 
                     Text(
-                        text = byLine,
+                        text = "Academic project adaptation built on the existing WebToApp application",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
@@ -661,6 +650,81 @@ private fun VersionPill(
                 .clickable(onClick = hapticCopy)
                 .size(14.dp),
             tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+private fun ProjectAcademicSection() {
+    WtaSection(
+        title = "Project Team / Academic Project",
+        headerStyle = WtaSectionHeaderStyle.Quiet
+    ) {
+        WtaCard(
+            modifier = Modifier.fillMaxWidth(),
+            tone = WtaCardTone.Surface
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text = "Project overview",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "An AI-assisted system designed to simplify the process of transforming websites " +
+                        "into mobile applications. It combines AI-assisted guidance with website configuration " +
+                        "and APK generation, allowing users to create, sign, install, and share Android applications.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "Implemented workflow",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "AI-assisted guidance • Website configuration • APK generation • APK signing • Installation • Sharing",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                HorizontalDivider()
+                AcademicDetail(
+                    "Project name",
+                    "AI-Assisted System for Converting Websites into Mobile Applications"
+                )
+                AcademicDetail("Student / team", "Group-14")
+                AcademicDetail("Department", "Information Science and Engineering")
+                AcademicDetail("College / institution", "S.J.C Institute of Technology")
+                AcademicDetail("Academic year", "2026-2027")
+                Text(
+                    text = "This project is a focused customization and academic presentation of an existing " +
+                        "open-source application. Original project attribution and third-party notices are " +
+                        "preserved below.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.outline
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AcademicDetail(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(0.9f)
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1.1f)
         )
     }
 }
@@ -1645,20 +1709,6 @@ private fun Context.openUrl(url: String) {
     } catch (_: Exception) {
         Toast.makeText(this, Strings.cannotOpenLink, Toast.LENGTH_SHORT).show()
     }
-}
-
-@Composable
-private fun aboutAuthorByLine(): String = when (Strings.currentLanguage.value) {
-    AppLanguage.CHINESE -> "开发者 Shiaho"
-    AppLanguage.ENGLISH -> "by Shiaho"
-    AppLanguage.ARABIC -> "بواسطة Shiaho"
-    AppLanguage.PORTUGUESE -> "by Shiaho"
-    AppLanguage.SPANISH -> "by Shiaho"
-    AppLanguage.FRENCH -> "by Shiaho"
-    AppLanguage.GERMAN -> "by Shiaho"
-    AppLanguage.RUSSIAN -> "by Shiaho"
-    AppLanguage.JAPANESE -> "by Shiaho"
-    AppLanguage.KOREAN -> "by Shiaho"
 }
 
 @Composable

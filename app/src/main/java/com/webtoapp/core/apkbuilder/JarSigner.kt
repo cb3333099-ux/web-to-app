@@ -760,7 +760,7 @@ class JarSigner(private val context: Context) {
                 // JKS/JCEKS/BKS: re-store into a unified-password PKCS12 so the app's own
                 // loading path (and any later export) works with storepass == keypass.
                 // Written through the platform provider on purpose: legacy algorithms that
-                // every consumer (including AabSigner and desktop keytool) can read.
+                // every consumer, including desktop keytool, can read.
                 val p12KeyStore = KeyStore.getInstance("PKCS12")
                 p12KeyStore.load(null, storePassChars.copyOf())
                 p12KeyStore.setKeyEntry(keyAlias, key, storePassChars.copyOf(), arrayOf(cert))

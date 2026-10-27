@@ -25,7 +25,6 @@ import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material.icons.outlined.GetApp
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.PieChart
-import androidx.compose.material.icons.outlined.PlayCircleOutline
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material3.CircularProgressIndicator
@@ -75,6 +74,7 @@ import com.webtoapp.core.logging.AppLogger
 import com.webtoapp.data.model.AppType
 import com.webtoapp.data.model.WebApp
 import com.webtoapp.data.model.withRuntimePermissionsSyncedFromFeatures
+import com.webtoapp.ui.animation.CollapsibleConfigCard
 import com.webtoapp.ui.components.BackgroundRunConfigCard
 import com.webtoapp.ui.components.EncryptionConfigCard
 import com.webtoapp.ui.components.EnhancedElevatedCard
@@ -107,8 +107,7 @@ import kotlinx.coroutines.withContext
 @Composable
 fun BuildApkScreen(
     appId: Long,
-    onBack: () -> Unit,
-    onExportAab: (Long) -> Unit = {}
+    onBack: () -> Unit
 ) {
     val repository = remember { WebToAppApplication.repository }
     val webApp by repository.getWebAppById(appId).collectAsState(initial = null)
@@ -127,16 +126,14 @@ fun BuildApkScreen(
 
     BuildApkContent(
         webApp = app,
-        onBack = onBack,
-        onExportAab = { onExportAab(app.id) }
+        onBack = onBack
     )
 }
 
 @Composable
 private fun BuildApkContent(
     webApp: WebApp,
-    onBack: () -> Unit,
-    onExportAab: () -> Unit
+    onBack: () -> Unit
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -154,8 +151,6 @@ private fun BuildApkContent(
         if (!uiReady) return@LaunchedEffect
         apkBuilderState = withContext(Dispatchers.IO) { ApkBuilder(context) }
     }
-
-    var showExportAabConfirm by remember { mutableStateOf(false) }
 
     var isBuilding by remember(webApp.id) { mutableStateOf(false) }
     var progress by remember(webApp.id) { mutableIntStateOf(0) }
@@ -507,19 +502,6 @@ private fun BuildApkContent(
                             .padding(horizontal = 16.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        PremiumOutlinedButton(
-                            onClick = { showExportAabConfirm = true },
-                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
-                        ) {
-                            Icon(
-                                Icons.Outlined.PlayCircleOutline,
-                                null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(Modifier.width(6.dp))
-                            Text("AAB", maxLines = 1)
-                        }
-                        Spacer(Modifier.width(8.dp))
                         if (targetInstalled) {
                             PremiumOutlinedButton(
                                 onClick = { launchInstalledApp() },
@@ -686,47 +668,44 @@ private fun BuildApkContent(
             }
 
             item {
-                EncryptionConfigCard(
-                    config = encryptionConfig,
-                    onConfigChange = { encryptionConfig = it }
-                )
-            }
+                CollapsibleConfigCard(
+                    title = Strings.advancedOptions,
+                    icon = Icons.Outlined.Build
+                ) {
+                    EncryptionConfigCard(
+                        config = encryptionConfig,
+                        onConfigChange = { encryptionConfig = it }
+                    )
 
-            item {
-                IsolationConfigCard(
-                    config = isolationConfig,
-                    onConfigChange = { isolationConfig = it }
-                )
-            }
+                    IsolationConfigCard(
+                        config = isolationConfig,
+                        onConfigChange = { isolationConfig = it }
+                    )
 
-            item {
-                BackgroundRunConfigCard(
-                    enabled = backgroundRunEnabled,
-                    config = backgroundRunConfig,
-                    onEnabledChange = { backgroundRunEnabled = it },
-                    onConfigChange = { backgroundRunConfig = it }
-                )
-            }
+                    BackgroundRunConfigCard(
+                        enabled = backgroundRunEnabled,
+                        config = backgroundRunConfig,
+                        onEnabledChange = { backgroundRunEnabled = it },
+                        onConfigChange = { backgroundRunConfig = it }
+                    )
 
-            item {
-                NotificationConfigCard(
-                    enabled = notificationEnabled,
-                    config = notificationConfig,
-                    onEnabledChange = { notificationEnabled = it },
-                    onConfigChange = { notificationConfig = it }
-                )
-            }
+                    NotificationConfigCard(
+                        enabled = notificationEnabled,
+                        config = notificationConfig,
+                        onEnabledChange = { notificationEnabled = it },
+                        onConfigChange = { notificationConfig = it }
+                    )
 
-            // GeckoView is offered for WEB and MULTI_WEB: multi-web surfaces share
-            // one GeckoRuntime across per-site GeckoSessions (#1035).
-            if (webApp.appType == AppType.WEB || webApp.appType == AppType.MULTI_WEB) {
-                item {
-                    WtaCard {
-                        EngineSelectionCard(
-                            selectedEngine = selectedEngineType,
-                            isGeckoDownloaded = isGeckoDownloaded,
-                            onEngineSelected = { selectedEngineType = it }
-                        )
+                    // GeckoView is offered for WEB and MULTI_WEB: multi-web surfaces share
+                    // one GeckoRuntime across per-site GeckoSessions (#1035).
+                    if (webApp.appType == AppType.WEB || webApp.appType == AppType.MULTI_WEB) {
+                        WtaCard {
+                            EngineSelectionCard(
+                                selectedEngine = selectedEngineType,
+                                isGeckoDownloaded = isGeckoDownloaded,
+                                onEngineSelected = { selectedEngineType = it }
+                            )
+                        }
                     }
                 }
             }
@@ -1057,26 +1036,6 @@ private fun BuildApkContent(
                 }
             }
         }
-    }
-
-    if (showExportAabConfirm) {
-        WtaAlertDialog(
-            onDismissRequest = { showExportAabConfirm = false },
-            icon = Icons.Outlined.PlayCircleOutline,
-            title = Strings.playStoreExportAabConfirmTitle,
-            text = Strings.playStoreExportAabConfirmBody,
-            confirmButton = {
-                TextButton(onClick = {
-                    showExportAabConfirm = false
-                    onExportAab()
-                }) { Text(Strings.confirm) }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    showExportAabConfirm = false
-                }) { Text(Strings.btnCancel) }
-            }
-        )
     }
 
     entryPendingDelete?.let { entry ->

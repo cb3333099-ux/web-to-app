@@ -11,7 +11,6 @@ import com.webtoapp.core.apkbuilder.BuildResult
 import com.webtoapp.core.export.AppExporter
 import com.webtoapp.core.export.ExportResult
 import com.webtoapp.core.export.ShortcutResult
-import com.webtoapp.core.playstore.aab.AabExportCoordinator
 import kotlinx.coroutines.flow.first
 
 class BuildApkTool : Tool {
@@ -233,31 +232,5 @@ class DuplicateAppTool : Tool {
         val newId = ctx.appRepository.duplicateWebApp(appId, newName)
             ?: return ToolResult.error("DuplicateApp: app $appId not found.")
         return ToolResult.ok("Duplicated to new app id=$newId.")
-    }
-}
-
-class ExportAabTool : Tool {
-    override val name = "ExportAab"
-    override val description = """
-        Export a Google Play-ready AAB for an app. Builds an APK first if needed, then
-        converts to a signed AAB with targetSdk rewritten for Play. Potentially slow.
-    """.trimIndent()
-    override val parametersSchema: JsonElement = jsonSchema {
-        integer("appId", "The app id.", required = true)
-    }
-    override fun isReadOnly() = false
-    override fun activityDescription(args: JsonObject): String? =
-        args.get("appId")?.asString?.let { "Exporting AAB for app $it" }
-    override suspend fun execute(args: JsonObject, ctx: ToolContext): ToolResult {
-        val appId = args.get("appId")?.asLong ?: return ToolResult.error("ExportAab: missing appId.")
-        val app = ctx.appRepository.getWebApp(appId) ?: return ToolResult.error("ExportAab: app $appId not found.")
-        val coordinator = AabExportCoordinator(ctx.androidContext)
-        return try {
-            val result = coordinator.export(app)
-            val sizeKb = result.signedAab.length() / 1024
-            ToolResult.ok("AAB exported: ${result.signedAab.absolutePath} (${sizeKb}KB).")
-        } catch (e: Exception) {
-            ToolResult.error("ExportAab failed: ${e.message}")
-        }
     }
 }

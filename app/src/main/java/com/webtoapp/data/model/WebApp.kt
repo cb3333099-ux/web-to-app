@@ -29,8 +29,7 @@ enum class AppType {
      * platform enforces write-xor-execute (W^X) on the app's writable data dir, which blocks
      * execve on the bundled binaries. WebView-only types are free to raise targetSdk for Play.
      *
-     * Single source of truth for "server runtime app" — also used by the Play policy checker
-     * (was previously duplicated as `AabExportCoordinator.PROCESS_EXEC_APP_TYPES`).
+     * Single source of truth for "server runtime app".
      */
     val requiresProcessExec: Boolean
         get() = this in REQUIRES_PROCESS_EXEC

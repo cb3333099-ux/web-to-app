@@ -17,14 +17,16 @@ import com.webtoapp.core.agent.tool.ToolResult
 import com.webtoapp.core.i18n.Strings
 import com.webtoapp.core.logging.AppLogger
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.produceIn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
 class AgentEngine(
@@ -517,7 +519,7 @@ class AgentEngine(
  * collection ends normally so the engine's retry loop can take over.
  *
  * The flow is subscribed EXACTLY ONCE: it is turned into a [ReceiveChannel] via
- * [produceIn], and only the wait for the next element is wrapped in a fresh
+ * an undispatched producer, and only the wait for the next element is wrapped in a fresh
  * [withTimeoutOrNull] window per event. Never re-collect the flow per event —
  * the provider flows are cold `callbackFlow`s, so each repeated collect re-runs
  * the producer block (a brand-new HTTP request per event) while the previous
@@ -536,7 +538,16 @@ internal suspend fun <T> Flow<T>.collectWithIdleTimeout(
 ) {
     val timeoutMs = idleTimeoutMs.coerceAtLeast(1L)
     coroutineScope {
-        val events = produceIn(this)
+        val events = Channel<T>(Channel.BUFFERED)
+        val producer = launch(start = CoroutineStart.UNDISPATCHED) {
+            try {
+                collect { events.send(it) }
+                events.close()
+            } catch (t: Throwable) {
+                events.close(t)
+                throw t
+            }
+        }
         try {
             while (true) {
                 val result = withTimeoutOrNull(timeoutMs) { events.receiveCatching() }
@@ -561,7 +572,8 @@ internal suspend fun <T> Flow<T>.collectWithIdleTimeout(
             // coroutineScope waits for children on block exit but does NOT cancel
             // them: a producer parked in awaitClose would hang the exit forever
             // unless cancelled here.
-            events.cancel(null)
+            events.cancel()
+            producer.cancel()
         }
     }
 }

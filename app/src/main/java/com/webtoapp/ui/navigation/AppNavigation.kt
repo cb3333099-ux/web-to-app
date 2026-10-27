@@ -58,7 +58,6 @@ import com.webtoapp.ui.screens.PluginEditorScreen
 import com.webtoapp.ui.screens.ModuleMarketScreen
 import com.webtoapp.ui.screens.MoreScreen
 import com.webtoapp.ui.screens.PortManagerScreen
-import com.webtoapp.ui.screens.PlayStoreScreen
 import com.webtoapp.ui.screens.RuntimeDepsScreen
 import com.webtoapp.ui.screens.StatsScreen
 import com.webtoapp.ui.viewmodel.MainViewModel
@@ -111,14 +110,8 @@ object Routes {
     const val STATS = "stats"
     const val ABOUT = "about"
     const val SETTINGS = "settings"
-    const val PLAY_STORE = "play_store?appId={appId}&autoStart={autoStart}"
     const val FILE_MANAGER = "file_manager"
     const val BUILD_APK = "build_apk/{appId}"
-
-    fun playStore(appId: Long? = null, autoStart: Boolean = false): String {
-        val id = appId?.toString() ?: ""
-        return "play_store?appId=$id&autoStart=$autoStart"
-    }
 
     fun buildApk(appId: Long) = "build_apk/$appId"
     fun pluginMarket(tab: Int = 0) = "plugin_market?initialTab=$tab"
@@ -246,10 +239,6 @@ fun AppNavigation() {
                         onOpenStats = { navController.navigate(Routes.STATS) },
                         onOpenAbout = { navController.navigate(Routes.ABOUT) },
                         onOpenSettings = { navController.navigate(Routes.SETTINGS) },
-                        onOpenPlayStore = { navController.navigate(Routes.playStore()) },
-                        onExportAabForApp = { appId ->
-                            navController.navigate(Routes.playStore(appId = appId, autoStart = true))
-                        },
                         onOpenFileManager = { navController.navigate(Routes.FILE_MANAGER) },
                         onBuildApk = { appId ->
                             navController.navigate(Routes.buildApk(appId))
@@ -722,32 +711,6 @@ fun AppNavigation() {
                 PortManagerScreen(onBack = { navController.popBackStackSafely() })
             }
 
-            composable(
-                route = Routes.PLAY_STORE,
-                arguments = listOf(
-                    navArgument("appId") {
-                        type = NavType.StringType
-                        nullable = true
-                        defaultValue = ""
-                    },
-                    navArgument("autoStart") {
-                        type = NavType.StringType
-                        nullable = true
-                        defaultValue = "false"
-                    }
-                )
-            ) { backStackEntry ->
-                val rawAppId = backStackEntry.arguments?.getString("appId").orEmpty()
-                val initialAppId = rawAppId.toLongOrNull()
-                val autoStart = backStackEntry.arguments?.getString("autoStart")?.equals("true", ignoreCase = true) == true
-                PlayStoreScreen(
-                    onBack = { navController.popBackStackSafely() },
-                    initialAppId = initialAppId,
-                    autoStartExport = autoStart,
-                    viewModel = viewModel
-                )
-            }
-
             composable(Routes.FILE_MANAGER) {
                 FileManagerScreen(onBack = { navController.popBackStackSafely() })
             }
@@ -760,9 +723,6 @@ fun AppNavigation() {
                 BuildApkScreen(
                     appId = appId,
                     onBack = { navController.popBackStackSafely() },
-                    onExportAab = { id ->
-                        navController.navigate(Routes.playStore(appId = id, autoStart = true))
-                    }
                 )
             }
 

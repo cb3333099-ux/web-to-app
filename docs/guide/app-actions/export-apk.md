@@ -20,7 +20,7 @@ Open the folder in Android Studio to sync and build it.
 
 ## What it is not
 
-The installable file from WebToApp is still the [built APK](/guide/app-actions/build-apk) or a [Play AAB](/guide/more-features/google-play). This project builds a WebView app from the same name, package, permissions, and local files. It does not include the signing keystore or the full WebToApp shell runtime.
+The installable file from WebToApp is the [built APK](/guide/app-actions/build-apk). This project builds a WebView app from the same name, package, permissions, and local files. It does not include the signing keystore or the full WebToApp shell runtime.
 
 The archive can include activation secrets and proxy credentials you configured.
 

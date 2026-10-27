@@ -1,7 +1,6 @@
 package com.webtoapp.core.apkbuilder
 
 import com.google.common.truth.Truth.assertThat
-import com.webtoapp.core.playstore.aab.axml.AxmlToProtoXml
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import java.io.File
@@ -27,18 +26,13 @@ class AxmlRebuilderTargetSdkTest {
     }
 
     private fun usesSdkInt(axml: ByteArray, attrName: String): Int? {
-        val node = AxmlToProtoXml.convert(axml)
-        assertThat(node.hasElement()).isTrue()
-        val manifest = node.element
-        val usesSdk = manifest.childList
-            .filter { it.hasElement() }
-            .map { it.element }
+        val manifest = BinaryAxmlTestSupport.parse(axml)
+        val usesSdk = manifest.children
             .firstOrNull { it.name == "uses-sdk" }
             ?: return null
-        val attr = usesSdk.attributeList.firstOrNull { it.name == attrName }
+        val attr = usesSdk.attributes.firstOrNull { it.name == attrName }
             ?: return null
-        assertThat(attr.compiledItem.hasPrim()).isTrue()
-        return attr.compiledItem.prim.intDecimalValue
+        return attr.data
     }
 
     private fun targetSdkOf(axml: ByteArray): Int? = usesSdkInt(axml, "targetSdkVersion")
